@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "Timetracker.Console": {
+    "Timetracker": {
       "commandName": "Project",
-      "commandLineArgs": "config -u \"https://erbr-repom.timehub.7pace.com\" -t \"1ISDrrfx3DgBMHno4xPYJ0K0qWuXTRr2gt8F7_vr0h8\""
+      "commandLineArgs": "help"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker"
