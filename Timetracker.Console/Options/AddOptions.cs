@@ -2,14 +2,14 @@
 
 namespace Timetracker.Options;
 
-[Verb("add", HelpText = "Add an activity to the staging area.")]
+[Verb("add", HelpText = "Add an activity directly to the server.")]
 public class AddOptions
 {
     [Option('d', "date", Required = true, HelpText = "Sets the date for the activity.")]
     public string ActivityDate { get; set; }
 
     [Option('w', "workitem", Required = true, HelpText = "Sets the Work Item ID for the activity.")]
-    public int WorkItem { get; set; }
+    public int WorkItemId { get; set; }
 
     [Option('l', "length", Required = true, HelpText = "Sets the length in hours for the activity.")]
     public decimal ActivityLenght { get; set; }

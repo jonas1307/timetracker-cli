@@ -33,7 +33,7 @@ namespace Timetracker.Services
     {
         private const string TIMETRACKER_API_VERSION = "3.2";
 
-        public static async Task RegisterActivity(TrackOptions options)
+        public static async Task RegisterActivity(AddOptions options)
         {
             var activity = ActivityService.GetActivities()
                 .First(f => f.Name == options.ActivityType);

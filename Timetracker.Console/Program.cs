@@ -2,13 +2,11 @@
 using Timetracker.Options;
 using Timetracker.Services;
 
-await Parser.Default.ParseArguments<ConfigOptions, TrackOptions, ActivitiesOptions, AddOptions, SyncOptions>(args)
+await Parser.Default.ParseArguments<ConfigOptions, ActivitiesOptions, AddOptions>(args)
     .MapResult(
         async (ConfigOptions opts) => await ConfigAction(opts),
-        async (TrackOptions opts) => await TrackAction(opts),
         async (ActivitiesOptions opts) => await ActivitiesAction(opts),
         async (AddOptions opts) => await AddActions(opts),
-        async (SyncOptions opts) => await SyncActions(opts),
         errs => Task.FromResult(0)
     );
 
@@ -57,19 +55,9 @@ async Task ConfigAction(ConfigOptions opts)
     Console.WriteLine("Activities file created.");
 }
 
-static async Task TrackAction(TrackOptions opts)
+static async Task AddActions(AddOptions opts)
 {
     await HttpService.RegisterActivity(opts);
 
     Console.WriteLine("Activity successfully created.");
-}
-
-async Task AddActions(AddOptions opts)
-{
-    throw new NotImplementedException();
-}
-
-async Task SyncActions(SyncOptions opts)
-{
-    throw new NotImplementedException();
 }
