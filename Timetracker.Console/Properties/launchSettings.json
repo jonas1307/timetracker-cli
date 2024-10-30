@@ -3,9 +3,6 @@
     "Timetracker": {
       "commandName": "Project",
       "commandLineArgs": "help"
-    },
-    "Container (Dockerfile)": {
-      "commandName": "Docker"
     }
   }
 }
