@@ -2,15 +2,15 @@
 using Timetracker.Options;
 using Timetracker.Services;
 
-await Parser.Default.ParseArguments<ConfigOptions, ActivitiesOptions, AddOptions>(args)
+await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions>(args)
     .MapResult(
         async (ConfigOptions opts) => await ConfigAction(opts),
-        async (ActivitiesOptions opts) => await ActivitiesAction(opts),
         async (AddOptions opts) => await AddActions(opts),
+        async (ActivityTypeOptions opts) => await ActivitiyTypeAction(opts),
         errs => Task.FromResult(0)
     );
 
-async Task ActivitiesAction(ActivitiesOptions opts)
+async Task ActivitiyTypeAction(ActivityTypeOptions opts)
 {
     await ActivityService.SeedActivities();
 
