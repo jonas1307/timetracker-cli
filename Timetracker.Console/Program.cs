@@ -36,14 +36,7 @@ async Task ConfigAction(ConfigOptions opts)
     // Creates config file
     Console.WriteLine("Creating config file...");
 
-    var config = new Config
-    {
-        TimetrackerBearerToken = opts.TimetrackerBearerToken,
-        TimetrackerUrl = opts.TimetrackerUrl,
-        TimetrackerUserId = user.Data.User.Id
-    };
-
-    FileService.SaveConfig(config);
+    ConfigService.SaveConfig(opts, user.Data.User.Id);
 
     Console.WriteLine("Config file created.");
 

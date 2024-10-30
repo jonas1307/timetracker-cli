@@ -1,34 +1,11 @@
 ﻿using Newtonsoft.Json;
 using RestSharp;
 using Timetracker.Options;
+using Timetracker.Requests;
 using Timetracker.Responses;
 
 namespace Timetracker.Services
 {
-    public record WorklogRequest
-    {
-        [JsonProperty("timeStamp")]
-        public DateTime TimeStamp { get; set; }
-
-        [JsonProperty("length")]
-        public int Length { get; set; }
-
-        [JsonProperty("billableLength")]
-        public object BillableLength { get; set; }
-
-        [JsonProperty("workItemId")]
-        public int WorkItemId { get; set; }
-
-        [JsonProperty("comment")]
-        public string Comment { get; set; }
-
-        [JsonProperty("userId")]
-        public string UserId { get; set; }
-
-        [JsonProperty("activityTypeId")]
-        public string ActivityTypeId { get; set; }
-    }
-
     public static class HttpService
     {
         private const string TIMETRACKER_API_VERSION = "3.2";
@@ -38,21 +15,21 @@ namespace Timetracker.Services
             var activity = ActivityService.GetActivities()
                 .First(f => f.Name == options.ActivityType);
 
-            var worklog = new WorklogRequest
+            var worklog = new TimetrackerWorklogRequest
             {
                 TimeStamp = DateTime.Parse($"{options.ActivityDate} 09:00:00"),
                 Length = (int)(options.ActivityLenght * 60 * 60),
                 BillableLength = null,
                 WorkItemId = options.WorkItemId,
                 Comment = options.ActivityComment,
-                UserId = FileService.LoadSetting("TimetrackerUserId"),
+                UserId = ConfigService.LoadSetting("TimetrackerUserId"),
                 ActivityTypeId = activity.Id
             };
 
-            var client = new RestClient(FileService.LoadSetting("TimetrackerUrl"));
+            var client = new RestClient(ConfigService.LoadSetting("TimetrackerUrl"));
 
             var request = new RestRequest($"/api/rest/workLogs?api-version={TIMETRACKER_API_VERSION}", Method.Post);
-            request.AddHeader("Authorization", $"Bearer {FileService.LoadSetting("TimetrackerBearerToken")}");
+            request.AddHeader("Authorization", $"Bearer {ConfigService.LoadSetting("TimetrackerBearerToken")}");
             request.AddJsonBody(worklog);
 
             var response = await client.ExecuteAsync(request);
@@ -62,10 +39,10 @@ namespace Timetracker.Services
 
         public static async Task<TimetrackerResponse<ActivityTypeResponse>> ListActivityTypes()
         {
-            var client = new RestClient(FileService.LoadSetting("TimetrackerUrl"));
+            var client = new RestClient(ConfigService.LoadSetting("TimetrackerUrl"));
 
             var request = new RestRequest($"/api/rest/activityTypes?api-version={TIMETRACKER_API_VERSION}", Method.Get);
-            request.AddHeader("Authorization", $"Bearer {FileService.LoadSetting("TimetrackerBearerToken")}");
+            request.AddHeader("Authorization", $"Bearer {ConfigService.LoadSetting("TimetrackerBearerToken")}");
 
             var response = await client.ExecuteAsync(request);
 
@@ -77,7 +54,7 @@ namespace Timetracker.Services
             throw new Exception("Could not retrieve the list of activities.");
         }
 
-        internal static async Task<TimetrackerResponse<TimetrackerUserResponse>> GetTimetrackerUser(string timetrackerUrl, string timetrackerBearerToken)
+        public static async Task<TimetrackerResponse<TimetrackerUserResponse>> GetTimetrackerUser(string timetrackerUrl, string timetrackerBearerToken)
         {
             var client = new RestClient(timetrackerUrl);
 
