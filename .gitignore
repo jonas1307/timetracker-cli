@@ -1,0 +1,63 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Visual Studio Code settings
+.vscode/
+
+# Rider settings
+.idea/
+
+# User-specific files
+*.sln.ide
+*.sln.docstates
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+*.pdb
+*.mdb
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+
+# Visual Studio extension cache
+*.vsix
+
+# IIS Express
+iisexpress/
+
+# Publish output
+publish/
+
+# Backup files
+*~ 
+*.bak
+
+# Visual Studio configuration files
+*.config
+
+# Other
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+*.jfm
+*.dbproj
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.publishsettings

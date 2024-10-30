@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Timetracker.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "config -u \"https://erbr-repom.timehub.7pace.com\" -t \"1ISDrrfx3DgBMHno4xPYJ0K0qWuXTRr2gt8F7_vr0h8\""
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
