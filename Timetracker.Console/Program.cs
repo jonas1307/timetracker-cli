@@ -12,7 +12,12 @@ await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptio
 
 async Task ActivitiyTypeAction(ActivityTypeOptions opts)
 {
-    await ActivityService.SeedActivities();
+    if (opts.SyncActivities)
+    {
+        Console.WriteLine("Synchronizing activities...");
+
+        await ActivityService.SeedActivities();
+    }
 
     var activities = ActivityService.GetActivities();
 
