@@ -19,4 +19,7 @@ public class AddOptions
 
     [Option('c', "comment", Required = false, HelpText = "Sets a comment for the activity. Default is null.", Default = null)]
     public string ActivityComment { get; set; }
+
+    [Option('h', "hour", Required = false, HelpText = "Sets the hour that the activity started. Default is '09:00'.", Default = "09:00")]
+    public string ActivityStartHour { get; set; }
 }

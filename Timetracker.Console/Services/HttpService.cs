@@ -17,7 +17,7 @@ namespace Timetracker.Services
 
             var worklog = new TimetrackerWorklogRequest
             {
-                TimeStamp = DateTime.Parse($"{options.ActivityDate} 09:00:00"),
+                TimeStamp = DateTime.Parse($"{options.ActivityDate} {options.ActivityStartHour}"),
                 Length = (int)(options.ActivityLenght * 60 * 60),
                 BillableLength = null,
                 WorkItemId = options.WorkItemId,
