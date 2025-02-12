@@ -21,12 +21,16 @@ async Task ActivitiyTypeAction(ActivityTypeOptions opts)
 
     var activities = ActivityService.GetActivities();
 
+    Console.ForegroundColor = ConsoleColor.Green;
+
     Console.WriteLine("The available activities are: ");
 
     foreach (var item in activities)
     {
         Console.WriteLine(item.Name);
     }
+
+    Console.ResetColor();
 }
 
 async Task ConfigAction(ConfigOptions opts)
@@ -49,7 +53,7 @@ async Task ConfigAction(ConfigOptions opts)
     Console.WriteLine("Creating activities...");
 
     await ActivityService.SeedActivities();
-
+    
     Console.WriteLine("Activities file created.");
 }
 
@@ -57,5 +61,8 @@ static async Task AddActions(AddOptions opts)
 {
     await HttpService.RegisterActivity(opts);
 
+    Console.ForegroundColor = ConsoleColor.Green;
     Console.WriteLine("Activity successfully created.");
+    
+    Console.ResetColor();
 }
