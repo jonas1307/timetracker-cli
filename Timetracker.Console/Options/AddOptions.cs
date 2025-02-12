@@ -17,6 +17,6 @@ public class AddOptions
     [Option('t', "type", Required = true, HelpText = "Sets the type of the activity.")]
     public string ActivityType { get; set; }
 
-    [Option('c', "comment", Required = false, HelpText = "Sets a comment for the activity.")]
+    [Option('c', "comment", Required = false, HelpText = "Sets a comment for the activity. Default is null.", Default = null)]
     public string ActivityComment { get; set; }
 }
