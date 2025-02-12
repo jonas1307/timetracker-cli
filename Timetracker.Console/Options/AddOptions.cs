@@ -17,9 +17,9 @@ public class AddOptions
     [Option('t', "type", Required = true, HelpText = "Sets the type of the activity.")]
     public string ActivityType { get; set; }
 
-    [Option('c', "comment", Required = false, HelpText = "Sets a comment for the activity. Default is null.", Default = null)]
+    [Option('c', "comment", Required = false, HelpText = "Sets a comment for the activity.", Default = null)]
     public string ActivityComment { get; set; }
 
-    [Option('h', "hour", Required = false, HelpText = "Sets the hour that the activity started. Default is '09:00'.", Default = "09:00")]
+    [Option('h', "hour", Required = false, HelpText = "Sets the hour that the activity started.", Default = "09:00")]
     public string ActivityStartHour { get; set; }
 }
