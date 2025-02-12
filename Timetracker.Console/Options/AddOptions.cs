@@ -12,7 +12,7 @@ public class AddOptions
     public int WorkItemId { get; set; }
 
     [Option('l', "length", Required = true, HelpText = "Sets the length in hours for the activity.")]
-    public decimal ActivityLenght { get; set; }
+    public decimal ActivityLength { get; set; }
 
     [Option('t', "type", Required = true, HelpText = "Sets the type of the activity.")]
     public string ActivityType { get; set; }
