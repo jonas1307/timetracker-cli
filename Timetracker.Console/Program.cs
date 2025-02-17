@@ -36,26 +36,49 @@ async Task ActivitiyTypeAction(ActivityTypeOptions opts)
 
 async Task ConfigAction(ConfigOptions opts)
 {
-    // Gets user ID
-    Console.WriteLine("Obtaining User Id...");
+    try
+    {
+        var validator = new ConfigValidator();
 
-    var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken);
+        var result = validator.Validate(opts);
 
-    Console.WriteLine("User ID obtained successfully.");
+        if (!result.IsValid)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
 
-    // Creates config file
-    Console.WriteLine("Creating config file...");
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"- {error.ErrorMessage}");
+            }
 
-    ConfigService.SaveConfig(opts, user.Data.User.Id);
+            return;
+        }
 
-    Console.WriteLine("Config file created.");
+        // Gets user ID
+        Console.WriteLine("Obtaining User Id...");
 
-    // Creates activity file
-    Console.WriteLine("Creating activities...");
+        var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken);
 
-    await ActivityService.SeedActivities();
-    
-    Console.WriteLine("Activities file created.");
+        Console.WriteLine("User ID obtained successfully.");
+
+        // Creates config file
+        Console.WriteLine("Creating config file...");
+
+        ConfigService.SaveConfig(opts, user.Data.User.Id);
+
+        Console.WriteLine("Config file created.");
+
+        // Creates activity file
+        Console.WriteLine("Creating activities...");
+
+        await ActivityService.SeedActivities();
+
+        Console.WriteLine("Activities file created.");
+    }
+    finally
+    {
+        Console.ResetColor();
+    }
 }
 
 static async Task AddActions(AddOptions opts)
