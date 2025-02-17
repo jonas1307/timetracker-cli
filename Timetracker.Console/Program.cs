@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Timetracker.Options;
 using Timetracker.Services;
+using Timetracker.Validators;
 
 await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions>(args)
     .MapResult(
@@ -59,10 +60,34 @@ async Task ConfigAction(ConfigOptions opts)
 
 static async Task AddActions(AddOptions opts)
 {
-    await HttpService.RegisterActivity(opts);
+    try
+    {
+        var activities = ActivityService.GetActivities()
+            .Select(x => x.Name.ToUpper());
 
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine("Activity successfully created.");
-    
-    Console.ResetColor();
+        var validator = new AddValidator(activities);
+
+        var result = validator.Validate(opts);
+
+        if (!result.IsValid)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"- {error.ErrorMessage}");
+            }
+
+            return;
+        }
+
+        await HttpService.RegisterActivity(opts);
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Activity successfully created.");
+    }
+    finally
+    {
+        Console.ResetColor();
+    }
 }

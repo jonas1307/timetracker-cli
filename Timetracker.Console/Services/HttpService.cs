@@ -12,8 +12,7 @@ namespace Timetracker.Services
 
         public static async Task RegisterActivity(AddOptions options)
         {
-            var activity = ActivityService.GetActivities()
-                .First(f => f.Name == options.ActivityType);
+            var activityId = ActivityService.GetActivityId(options.ActivityType);
 
             var worklog = new TimetrackerWorklogRequest
             {
@@ -23,7 +22,7 @@ namespace Timetracker.Services
                 WorkItemId = options.WorkItemId,
                 Comment = options.ActivityComment,
                 UserId = ConfigService.LoadSetting("TimetrackerUserId"),
-                ActivityTypeId = activity.Id
+                ActivityTypeId = activityId
             };
 
             var client = new RestClient(ConfigService.LoadSetting("TimetrackerUrl"));

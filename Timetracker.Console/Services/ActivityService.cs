@@ -41,6 +41,13 @@ public static class ActivityService
         return JsonConvert.DeserializeObject<IList<Activity>>(File.ReadAllText(filePath));
     }
 
+    public static string GetActivityId(string activity)
+    {
+        var activities = GetActivities();
+
+        return activities.First(x => x.Name.Equals(activity, StringComparison.CurrentCultureIgnoreCase)).Id;
+    }
+
     public async static Task SeedActivities()
     {
         var filePath = GetActivityPath();
