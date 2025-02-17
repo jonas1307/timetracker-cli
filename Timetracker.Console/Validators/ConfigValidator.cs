@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Timetracker.Options;
+using Timetracker.Utils;
 
 namespace Timetracker.Validators;
 
@@ -12,8 +13,6 @@ public class ConfigValidator : AbstractValidator<ConfigOptions>
 
         RuleFor(x => x.TimetrackerUrl)
             .NotEmpty().WithMessage("The Timetracker URL is required. Please provide the base URL.")
-            .Must(ValidUrl).WithMessage("The provided URL is invalid. Ensure it is in the format 'https://<company>.timehub.7pace.com'.");
+            .Must(ValidationUtils.ValidUrl).WithMessage("The provided URL is invalid. Ensure it is in the format 'https://<company>.timehub.7pace.com'.");
     }
-
-    private bool ValidUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out _);
 }
