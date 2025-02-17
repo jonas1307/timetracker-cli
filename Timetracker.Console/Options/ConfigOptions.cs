@@ -2,12 +2,12 @@
 
 namespace Timetracker.Options;
 
-[Verb("config", HelpText = "Configs the parameters for the CLI.")]
+[Verb("config", HelpText = "Configure the CLI parameters for connecting to your Timetracker instance.")]
 public class ConfigOptions
 {
-    [Option('u', "url", Required = true, HelpText = "The URL for the Timetracker instance.")]
+    [Option('u', "url", Required = true, HelpText = "Specify the URL for your Timetracker instance (e.g., https://<company>.timehub.7pace.com/api/odata).")]
     public string TimetrackerUrl { get; set; }
 
-    [Option('t', "token", Required = true, HelpText = "The Bearer Token for the Timetracker instance.")]
+    [Option('t', "token", Required = true, HelpText = "Provide the Bearer Token required for authentication with your Timetracker instance.")]
     public string TimetrackerBearerToken { get; set; }
 }
