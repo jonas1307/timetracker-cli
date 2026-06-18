@@ -12,23 +12,24 @@ namespace Timetracker.Services
 
         public static async Task RegisterActivity(AddOptions options)
         {
+            var config = ConfigService.LoadConfig();
             var activityId = ActivityService.GetActivityId(options.ActivityType);
 
             var worklog = new TimetrackerWorklogRequest
             {
                 TimeStamp = DateTime.Parse($"{options.ActivityDate} {options.ActivityStartHour}"),
-                Length = (int)Math.Round(options.ActivityLength * 3600), // Convert hours to seconds
+                Length = (int)Math.Round(options.ActivityLength * 3600),
                 BillableLength = null,
                 WorkItemId = options.WorkItemId,
                 Comment = options.ActivityComment,
-                UserId = ConfigService.LoadSetting("TimetrackerUserId"),
+                UserId = config.TimetrackerUserId,
                 ActivityTypeId = activityId
             };
 
-            var client = new RestClient(ConfigService.LoadSetting("TimetrackerUrl"));
+            var client = new RestClient(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/workLogs?api-version={TIMETRACKER_API_VERSION}", Method.Post);
-            request.AddHeader("Authorization", $"Bearer {ConfigService.LoadSetting("TimetrackerBearerToken")}");
+            request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
             request.AddJsonBody(worklog);
 
             var response = await client.ExecuteAsync(request);
@@ -41,10 +42,11 @@ namespace Timetracker.Services
 
         public static async Task<TimetrackerResponse<ActivityTypeResponse>> ListActivityTypes()
         {
-            var client = new RestClient(ConfigService.LoadSetting("TimetrackerUrl"));
+            var config = ConfigService.LoadConfig();
+            var client = new RestClient(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/activityTypes?api-version={TIMETRACKER_API_VERSION}", Method.Get);
-            request.AddHeader("Authorization", $"Bearer {ConfigService.LoadSetting("TimetrackerBearerToken")}");
+            request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
 
             var response = await client.ExecuteAsync(request);
 
