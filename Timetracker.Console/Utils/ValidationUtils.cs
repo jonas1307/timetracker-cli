@@ -10,4 +10,14 @@ public static class ValidationUtils
         Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
         (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
+    public static DateTime ResolveDate(string input)
+    {
+        if (string.IsNullOrEmpty(input) || input.Equals("today", StringComparison.OrdinalIgnoreCase))
+            return DateTime.Today;
+
+        if (input.Equals("yesterday", StringComparison.OrdinalIgnoreCase))
+            return DateTime.Today.AddDays(-1);
+
+        return DateTime.Parse(input);
+    }
 }
