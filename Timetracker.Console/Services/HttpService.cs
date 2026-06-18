@@ -33,7 +33,10 @@ namespace Timetracker.Services
 
             var response = await client.ExecuteAsync(request);
 
-            var responseData = response.Content;
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to register activity. Response: {response.Content}.");
+            }
         }
 
         public static async Task<TimetrackerResponse<ActivityTypeResponse>> ListActivityTypes()
