@@ -13,6 +13,14 @@ await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptio
 
 async Task ActivitiyTypeAction(ActivityTypeOptions opts)
 {
+    if (!ConfigService.ConfigExists())
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Configuration not found. Please run the 'config' command first.");
+        Console.ResetColor();
+        return;
+    }
+
     if (opts.SyncActivities)
     {
         Console.WriteLine("Synchronizing activities...");
@@ -85,6 +93,13 @@ static async Task AddActions(AddOptions opts)
 {
     try
     {
+        if (!ConfigService.ConfigExists())
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Configuration not found. Please run the 'config' command first.");
+            return;
+        }
+
         var activities = ActivityService.GetActivities()
             .Select(x => x.Name.ToUpper());
 

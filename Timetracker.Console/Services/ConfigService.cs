@@ -31,6 +31,8 @@ public static class ConfigService
         return Path.Combine(folderPath, JSON_FILE_NAME);
     }
 
+    public static bool ConfigExists() => File.Exists(GetConfigPath());
+
     public static string LoadSetting(string setting)
     {
         var configPath = GetConfigPath();
