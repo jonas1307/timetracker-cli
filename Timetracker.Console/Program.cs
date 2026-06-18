@@ -7,11 +7,11 @@ await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptio
     .MapResult(
         async (ConfigOptions opts) => await ConfigAction(opts),
         async (AddOptions opts) => await AddActions(opts),
-        async (ActivityTypeOptions opts) => await ActivitiyTypeAction(opts),
+        async (ActivityTypeOptions opts) => await ActivityTypeAction(opts),
         errs => Task.FromResult(0)
     );
 
-async Task ActivitiyTypeAction(ActivityTypeOptions opts)
+async Task ActivityTypeAction(ActivityTypeOptions opts)
 {
     try
     {
