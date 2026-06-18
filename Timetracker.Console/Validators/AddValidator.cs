@@ -29,7 +29,7 @@ public class AddValidator : AbstractValidator<AddOptions>
             .MinimumLength(3).When(x => !string.IsNullOrEmpty(x.ActivityComment)).WithMessage("Activity comments must be at least 3 characters long.");
 
         RuleFor(x => x.ActivityStartHour)
-            .Matches("^([01]?[0-9]|2[0-3]):([0-5][0-9])$").When(x => !string.IsNullOrEmpty(x.ActivityStartHour))
+            .Matches("^([01]?[0-9]|2[0-3]):([0-5][0-9])$")
             .WithMessage("Please provide a valid time in the format HH:MM (e.g., 9:00, 09:00, or 21:00).");
     }
 }
