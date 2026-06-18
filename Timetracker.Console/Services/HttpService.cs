@@ -57,6 +57,22 @@ namespace Timetracker.Services
             throw new Exception("Could not retrieve the list of activities.");
         }
 
+        public static async Task DeleteWorkLog(string workLogId, CancellationToken cancellationToken = default)
+        {
+            var config = ConfigService.LoadConfig();
+            using var client = new RestClient(config.TimetrackerUrl);
+
+            var request = new RestRequest($"/api/rest/workLogs/{workLogId}?api-version={TIMETRACKER_API_VERSION}", Method.Delete);
+            request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
+
+            var response = await client.ExecuteAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to delete time entry. Status: {response.StatusCode}. Response: {response.Content}.");
+            }
+        }
+
         public static async Task<TimetrackerResponse<TimetrackerUserResponse>> GetTimetrackerUser(string timetrackerUrl, string timetrackerBearerToken, CancellationToken cancellationToken = default)
         {
             using var client = new RestClient(timetrackerUrl);
