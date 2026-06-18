@@ -25,7 +25,7 @@ namespace Timetracker.Services
                 ActivityTypeId = activityId
             };
 
-            var client = new RestClient(config.TimetrackerUrl);
+            using var client = new RestClient(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/workLogs?api-version={TIMETRACKER_API_VERSION}", Method.Post);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
@@ -42,7 +42,7 @@ namespace Timetracker.Services
         public static async Task<TimetrackerResponse<ActivityTypeResponse>> ListActivityTypes()
         {
             var config = ConfigService.LoadConfig();
-            var client = new RestClient(config.TimetrackerUrl);
+            using var client = new RestClient(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/activityTypes?api-version={TIMETRACKER_API_VERSION}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
@@ -59,7 +59,7 @@ namespace Timetracker.Services
 
         public static async Task<TimetrackerResponse<TimetrackerUserResponse>> GetTimetrackerUser(string timetrackerUrl, string timetrackerBearerToken)
         {
-            var client = new RestClient(timetrackerUrl);
+            using var client = new RestClient(timetrackerUrl);
 
             var request = new RestRequest($"/api/rest/me?api-version={TIMETRACKER_API_VERSION}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {timetrackerBearerToken}");
