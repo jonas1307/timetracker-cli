@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Runtime.InteropServices;
 
 namespace Timetracker.Services;
 
@@ -17,7 +18,7 @@ public static class ActivityService
     {
         string folderPath;
 
-        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), APPLICATION_NAME);
         }
@@ -51,11 +52,11 @@ public static class ActivityService
         return found.Id;
     }
 
-    public async static Task SeedActivities()
+    public static async Task SeedActivities(CancellationToken cancellationToken = default)
     {
         var filePath = GetActivityPath();
 
-        var activities = await HttpService.ListActivityTypes();
+        var activities = await HttpService.ListActivityTypes(cancellationToken);
 
         File.WriteAllText(filePath, JsonConvert.SerializeObject(activities.Data.ActivityTypes, Formatting.Indented));
     }

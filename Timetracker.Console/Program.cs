@@ -1,136 +1,126 @@
-﻿using CommandLine;
+using CommandLine;
 using Timetracker.Options;
 using Timetracker.Services;
+using Timetracker.Utils;
 using Timetracker.Validators;
 
-await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions>(args)
-    .MapResult(
-        async (ConfigOptions opts) => await ConfigAction(opts),
-        async (AddOptions opts) => await AddActions(opts),
-        async (ActivityTypeOptions opts) => await ActivityTypeAction(opts),
-        errs => Task.FromResult(0)
-    );
+using var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
-async Task ActivityTypeAction(ActivityTypeOptions opts)
+try
 {
-    try
-    {
-        if (!ConfigService.ConfigExists())
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Configuration not found. Please run the 'config' command first.");
-            return;
-        }
-
-        if (opts.SyncActivities)
-        {
-            Console.WriteLine("Synchronizing activities...");
-
-            await ActivityService.SeedActivities();
-        }
-
-        var activities = ActivityService.GetActivities();
-
-        Console.ForegroundColor = ConsoleColor.Green;
-
-        Console.WriteLine("The available activities are: ");
-
-        foreach (var item in activities)
-        {
-            Console.WriteLine(item.Name);
-        }
-    }
-    finally
-    {
-        Console.ResetColor();
-    }
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions>(args)
+        .MapResult(
+            async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
+            async (AddOptions opts) => await AddActions(opts, cts.Token),
+            async (ActivityTypeOptions opts) => await ActivityTypeAction(opts, cts.Token),
+            errs => Task.FromResult(1)
+        );
+}
+catch (OperationCanceledException)
+{
+    ConsoleHelper.WriteError("Operation cancelled.");
+    return 1;
+}
+catch (Exception ex)
+{
+    ConsoleHelper.WriteError($"Unexpected error: {ex.Message}");
+    return 1;
 }
 
-async Task ConfigAction(ConfigOptions opts)
+async Task<int> ActivityTypeAction(ActivityTypeOptions opts, CancellationToken cancellationToken)
 {
-    try
+    if (!ConfigService.ConfigExists())
     {
-        var validator = new ConfigValidator();
-
-        var result = validator.Validate(opts);
-
-        if (!result.IsValid)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-
-            foreach (var error in result.Errors)
-            {
-                Console.WriteLine($"- {error.ErrorMessage}");
-            }
-
-            return;
-        }
-
-        // Gets user ID
-        Console.WriteLine("Obtaining User Id...");
-
-        var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken);
-
-        Console.WriteLine("User ID obtained successfully.");
-
-        // Creates config file
-        Console.WriteLine("Creating config file...");
-
-        ConfigService.SaveConfig(opts, user.Data.User.Id);
-
-        Console.WriteLine("Config file created.");
-
-        // Creates activity file
-        Console.WriteLine("Creating activities...");
-
-        await ActivityService.SeedActivities();
-
-        Console.WriteLine("Activities file created.");
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
     }
-    finally
+
+    if (opts.SyncActivities)
     {
-        Console.ResetColor();
+        Console.WriteLine("Synchronizing activities...");
+
+        await ActivityService.SeedActivities(cancellationToken);
     }
+
+    var activities = ActivityService.GetActivities();
+
+    ConsoleHelper.WriteSuccess("The available activities are: ");
+
+    foreach (var item in activities)
+    {
+        Console.WriteLine(item.Name);
+    }
+
+    return 0;
 }
 
-static async Task AddActions(AddOptions opts)
+async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationToken)
 {
-    try
+    var validator = new ConfigValidator();
+
+    var result = validator.Validate(opts);
+
+    if (!result.IsValid)
     {
-        if (!ConfigService.ConfigExists())
+        foreach (var error in result.Errors)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Configuration not found. Please run the 'config' command first.");
-            return;
+            ConsoleHelper.WriteError($"- {error.ErrorMessage}");
         }
 
-        var activities = ActivityService.GetActivities();
+        return 1;
+    }
 
-        var validator = new AddValidator(activities.Select(x => x.Name.ToUpper()));
+    Console.WriteLine("Obtaining User Id...");
 
-        var result = validator.Validate(opts);
+    var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken, cancellationToken);
 
-        if (!result.IsValid)
+    Console.WriteLine("User ID obtained successfully.");
+
+    Console.WriteLine("Creating config file...");
+
+    ConfigService.SaveConfig(opts, user.Data.User.Id);
+
+    Console.WriteLine("Config file created.");
+
+    Console.WriteLine("Creating activities...");
+
+    await ActivityService.SeedActivities(cancellationToken);
+
+    Console.WriteLine("Activities file created.");
+
+    return 0;
+}
+
+static async Task<int> AddActions(AddOptions opts, CancellationToken cancellationToken)
+{
+    if (!ConfigService.ConfigExists())
+    {
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
+    }
+
+    var activities = ActivityService.GetActivities();
+
+    var validator = new AddValidator(activities.Select(x => x.Name.ToUpper()));
+
+    var result = validator.Validate(opts);
+
+    if (!result.IsValid)
+    {
+        foreach (var error in result.Errors)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-
-            foreach (var error in result.Errors)
-            {
-                Console.WriteLine($"- {error.ErrorMessage}");
-            }
-
-            return;
+            ConsoleHelper.WriteError($"- {error.ErrorMessage}");
         }
 
-        var activityId = ActivityService.GetActivityId(opts.ActivityType, activities);
-
-        await HttpService.RegisterActivity(opts, activityId);
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Activity successfully created.");
+        return 1;
     }
-    finally
-    {
-        Console.ResetColor();
-    }
+
+    var activityId = ActivityService.GetActivityId(opts.ActivityType, activities);
+
+    await HttpService.RegisterActivity(opts, activityId, cancellationToken);
+
+    ConsoleHelper.WriteSuccess("Activity successfully created.");
+
+    return 0;
 }
