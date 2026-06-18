@@ -45,7 +45,12 @@ public static class ActivityService
     {
         var activities = GetActivities();
 
-        return activities.First(x => x.Name.Equals(activity, StringComparison.CurrentCultureIgnoreCase)).Id;
+        var found = activities.FirstOrDefault(x => x.Name.Equals(activity, StringComparison.CurrentCultureIgnoreCase));
+
+        if (found is null)
+            throw new InvalidOperationException($"Activity type '{activity}' not found. Run 'activity-type --sync' to refresh the list.");
+
+        return found.Id;
     }
 
     public async static Task SeedActivities()
