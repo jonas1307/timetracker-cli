@@ -1,6 +1,7 @@
 using CommandLine;
 using Timetracker.Options;
 using Timetracker.Services;
+using Timetracker.Utils;
 using Timetracker.Validators;
 
 try
@@ -15,138 +16,103 @@ try
 }
 catch (Exception ex)
 {
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.Error.WriteLine($"Unexpected error: {ex.Message}");
-    Console.ResetColor();
+    ConsoleHelper.WriteError($"Unexpected error: {ex.Message}");
     return 1;
 }
 
 async Task<int> ActivityTypeAction(ActivityTypeOptions opts)
 {
-    try
+    if (!ConfigService.ConfigExists())
     {
-        if (!ConfigService.ConfigExists())
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine("Configuration not found. Please run the 'config' command first.");
-            return 1;
-        }
-
-        if (opts.SyncActivities)
-        {
-            Console.WriteLine("Synchronizing activities...");
-
-            await ActivityService.SeedActivities();
-        }
-
-        var activities = ActivityService.GetActivities();
-
-        Console.ForegroundColor = ConsoleColor.Green;
-
-        Console.WriteLine("The available activities are: ");
-
-        foreach (var item in activities)
-        {
-            Console.WriteLine(item.Name);
-        }
-
-        return 0;
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
     }
-    finally
+
+    if (opts.SyncActivities)
     {
-        Console.ResetColor();
+        Console.WriteLine("Synchronizing activities...");
+
+        await ActivityService.SeedActivities();
     }
+
+    var activities = ActivityService.GetActivities();
+
+    ConsoleHelper.WriteSuccess("The available activities are: ");
+
+    foreach (var item in activities)
+    {
+        Console.WriteLine(item.Name);
+    }
+
+    return 0;
 }
 
 async Task<int> ConfigAction(ConfigOptions opts)
 {
-    try
+    var validator = new ConfigValidator();
+
+    var result = validator.Validate(opts);
+
+    if (!result.IsValid)
     {
-        var validator = new ConfigValidator();
-
-        var result = validator.Validate(opts);
-
-        if (!result.IsValid)
+        foreach (var error in result.Errors)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-
-            foreach (var error in result.Errors)
-            {
-                Console.Error.WriteLine($"- {error.ErrorMessage}");
-            }
-
-            return 1;
+            ConsoleHelper.WriteError($"- {error.ErrorMessage}");
         }
 
-        // Gets user ID
-        Console.WriteLine("Obtaining User Id...");
-
-        var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken);
-
-        Console.WriteLine("User ID obtained successfully.");
-
-        // Creates config file
-        Console.WriteLine("Creating config file...");
-
-        ConfigService.SaveConfig(opts, user.Data.User.Id);
-
-        Console.WriteLine("Config file created.");
-
-        // Creates activity file
-        Console.WriteLine("Creating activities...");
-
-        await ActivityService.SeedActivities();
-
-        Console.WriteLine("Activities file created.");
-
-        return 0;
+        return 1;
     }
-    finally
-    {
-        Console.ResetColor();
-    }
+
+    Console.WriteLine("Obtaining User Id...");
+
+    var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken);
+
+    Console.WriteLine("User ID obtained successfully.");
+
+    Console.WriteLine("Creating config file...");
+
+    ConfigService.SaveConfig(opts, user.Data.User.Id);
+
+    Console.WriteLine("Config file created.");
+
+    Console.WriteLine("Creating activities...");
+
+    await ActivityService.SeedActivities();
+
+    Console.WriteLine("Activities file created.");
+
+    return 0;
 }
 
 static async Task<int> AddActions(AddOptions opts)
 {
-    try
+    if (!ConfigService.ConfigExists())
     {
-        if (!ConfigService.ConfigExists())
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
+    }
+
+    var activities = ActivityService.GetActivities();
+
+    var validator = new AddValidator(activities.Select(x => x.Name.ToUpper()));
+
+    var result = validator.Validate(opts);
+
+    if (!result.IsValid)
+    {
+        foreach (var error in result.Errors)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine("Configuration not found. Please run the 'config' command first.");
-            return 1;
+            ConsoleHelper.WriteError($"- {error.ErrorMessage}");
         }
 
-        var activities = ActivityService.GetActivities();
-
-        var validator = new AddValidator(activities.Select(x => x.Name.ToUpper()));
-
-        var result = validator.Validate(opts);
-
-        if (!result.IsValid)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-
-            foreach (var error in result.Errors)
-            {
-                Console.Error.WriteLine($"- {error.ErrorMessage}");
-            }
-
-            return 1;
-        }
-
-        var activityId = ActivityService.GetActivityId(opts.ActivityType, activities);
-
-        await HttpService.RegisterActivity(opts, activityId);
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Activity successfully created.");
-
-        return 0;
+        return 1;
     }
-    finally
-    {
-        Console.ResetColor();
-    }
+
+    var activityId = ActivityService.GetActivityId(opts.ActivityType, activities);
+
+    await HttpService.RegisterActivity(opts, activityId);
+
+    ConsoleHelper.WriteSuccess("Activity successfully created.");
+
+    return 0;
 }
