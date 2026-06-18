@@ -1,17 +1,27 @@
-﻿using CommandLine;
+using CommandLine;
 using Timetracker.Options;
 using Timetracker.Services;
 using Timetracker.Validators;
 
-await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions>(args)
-    .MapResult(
-        async (ConfigOptions opts) => await ConfigAction(opts),
-        async (AddOptions opts) => await AddActions(opts),
-        async (ActivityTypeOptions opts) => await ActivityTypeAction(opts),
-        errs => Task.FromResult(0)
-    );
+try
+{
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions>(args)
+        .MapResult(
+            async (ConfigOptions opts) => await ConfigAction(opts),
+            async (AddOptions opts) => await AddActions(opts),
+            async (ActivityTypeOptions opts) => await ActivityTypeAction(opts),
+            errs => Task.FromResult(1)
+        );
+}
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.Error.WriteLine($"Unexpected error: {ex.Message}");
+    Console.ResetColor();
+    return 1;
+}
 
-async Task ActivityTypeAction(ActivityTypeOptions opts)
+async Task<int> ActivityTypeAction(ActivityTypeOptions opts)
 {
     try
     {
@@ -19,7 +29,7 @@ async Task ActivityTypeAction(ActivityTypeOptions opts)
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Configuration not found. Please run the 'config' command first.");
-            return;
+            return 1;
         }
 
         if (opts.SyncActivities)
@@ -39,6 +49,8 @@ async Task ActivityTypeAction(ActivityTypeOptions opts)
         {
             Console.WriteLine(item.Name);
         }
+
+        return 0;
     }
     finally
     {
@@ -46,7 +58,7 @@ async Task ActivityTypeAction(ActivityTypeOptions opts)
     }
 }
 
-async Task ConfigAction(ConfigOptions opts)
+async Task<int> ConfigAction(ConfigOptions opts)
 {
     try
     {
@@ -63,7 +75,7 @@ async Task ConfigAction(ConfigOptions opts)
                 Console.WriteLine($"- {error.ErrorMessage}");
             }
 
-            return;
+            return 1;
         }
 
         // Gets user ID
@@ -86,6 +98,8 @@ async Task ConfigAction(ConfigOptions opts)
         await ActivityService.SeedActivities();
 
         Console.WriteLine("Activities file created.");
+
+        return 0;
     }
     finally
     {
@@ -93,7 +107,7 @@ async Task ConfigAction(ConfigOptions opts)
     }
 }
 
-static async Task AddActions(AddOptions opts)
+static async Task<int> AddActions(AddOptions opts)
 {
     try
     {
@@ -101,7 +115,7 @@ static async Task AddActions(AddOptions opts)
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Configuration not found. Please run the 'config' command first.");
-            return;
+            return 1;
         }
 
         var activities = ActivityService.GetActivities();
@@ -119,7 +133,7 @@ static async Task AddActions(AddOptions opts)
                 Console.WriteLine($"- {error.ErrorMessage}");
             }
 
-            return;
+            return 1;
         }
 
         var activityId = ActivityService.GetActivityId(opts.ActivityType, activities);
@@ -128,6 +142,8 @@ static async Task AddActions(AddOptions opts)
 
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("Activity successfully created.");
+
+        return 0;
     }
     finally
     {
