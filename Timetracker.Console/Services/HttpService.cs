@@ -17,7 +17,7 @@ namespace Timetracker.Services
             var worklog = new TimetrackerWorklogRequest
             {
                 TimeStamp = DateTime.Parse($"{options.ActivityDate} {options.ActivityStartHour}"),
-                Length = (int)(options.ActivityLength * 60 * 60),
+                Length = (int)Math.Round(options.ActivityLength * 3600), // Convert hours to seconds
                 BillableLength = null,
                 WorkItemId = options.WorkItemId,
                 Comment = options.ActivityComment,
