@@ -11,7 +11,7 @@ namespace Timetracker.Requests
         public int Length { get; set; }
 
         [JsonProperty("billableLength")]
-        public object BillableLength { get; set; }
+        public int? BillableLength { get; set; }
 
         [JsonProperty("workItemId")]
         public int WorkItemId { get; set; }
