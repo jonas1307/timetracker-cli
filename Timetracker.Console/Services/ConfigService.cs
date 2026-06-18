@@ -45,12 +45,6 @@ public static class ConfigService
         return JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
     }
 
-    public static string LoadSetting(string setting)
-    {
-        var prop = typeof(Config).GetProperty(setting);
-        return prop != null ? (string)prop.GetValue(LoadConfig()) : null;
-    }
-
     public static void SaveConfig(ConfigOptions opts, string userId)
     {
         var configPath = GetConfigPath();
