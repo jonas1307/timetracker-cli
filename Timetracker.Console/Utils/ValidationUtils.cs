@@ -6,6 +6,8 @@ public static class ValidationUtils
 
     public static bool ValidType(IEnumerable<string> activities, string type) => activities.Contains(type.ToUpper());
 
-    public static bool ValidUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out _);
+    public static bool ValidUrl(string url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
 }
