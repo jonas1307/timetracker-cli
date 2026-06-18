@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Runtime.InteropServices;
 using Timetracker.Options;
 
 namespace Timetracker.Services;
@@ -19,7 +20,7 @@ public static class ConfigService
     {
         string folderPath;
 
-        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), APPLICATION_NAME);
         }
