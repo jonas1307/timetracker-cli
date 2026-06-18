@@ -41,11 +41,14 @@ public static class ActivityService
         return JsonConvert.DeserializeObject<IList<Activity>>(File.ReadAllText(filePath));
     }
 
-    public static string GetActivityId(string activity)
+    public static string GetActivityId(string activity, IList<Activity> activities)
     {
-        var activities = GetActivities();
+        var found = activities.FirstOrDefault(x => x.Name.Equals(activity, StringComparison.CurrentCultureIgnoreCase));
 
-        return activities.First(x => x.Name.Equals(activity, StringComparison.CurrentCultureIgnoreCase)).Id;
+        if (found is null)
+            throw new InvalidOperationException($"Activity type '{activity}' not found. Run 'activity-type --sync' to refresh the list.");
+
+        return found.Id;
     }
 
     public async static Task SeedActivities()

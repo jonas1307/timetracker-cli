@@ -31,7 +31,9 @@ public static class ConfigService
         return Path.Combine(folderPath, JSON_FILE_NAME);
     }
 
-    public static string LoadSetting(string setting)
+    public static bool ConfigExists() => File.Exists(GetConfigPath());
+
+    public static Config LoadConfig()
     {
         var configPath = GetConfigPath();
 
@@ -40,17 +42,7 @@ public static class ConfigService
             throw new FileNotFoundException($"{JSON_FILE_NAME} does not exist. Make sure you already executed the config method.");
         }
 
-        var type = typeof(Config);
-
-        var prop = type.GetProperty(setting);
-
-        if (prop != null)
-        {
-            var config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
-            return (string)prop.GetValue(config);
-        }
-
-        return null;
+        return JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
     }
 
     public static void SaveConfig(ConfigOptions opts, string userId)
