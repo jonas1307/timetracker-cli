@@ -4,15 +4,23 @@ using Timetracker.Services;
 using Timetracker.Utils;
 using Timetracker.Validators;
 
+using var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
+
 try
 {
     return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions>(args)
         .MapResult(
-            async (ConfigOptions opts) => await ConfigAction(opts),
-            async (AddOptions opts) => await AddActions(opts),
-            async (ActivityTypeOptions opts) => await ActivityTypeAction(opts),
+            async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
+            async (AddOptions opts) => await AddActions(opts, cts.Token),
+            async (ActivityTypeOptions opts) => await ActivityTypeAction(opts, cts.Token),
             errs => Task.FromResult(1)
         );
+}
+catch (OperationCanceledException)
+{
+    ConsoleHelper.WriteError("Operation cancelled.");
+    return 1;
 }
 catch (Exception ex)
 {
@@ -20,7 +28,7 @@ catch (Exception ex)
     return 1;
 }
 
-async Task<int> ActivityTypeAction(ActivityTypeOptions opts)
+async Task<int> ActivityTypeAction(ActivityTypeOptions opts, CancellationToken cancellationToken)
 {
     if (!ConfigService.ConfigExists())
     {
@@ -32,7 +40,7 @@ async Task<int> ActivityTypeAction(ActivityTypeOptions opts)
     {
         Console.WriteLine("Synchronizing activities...");
 
-        await ActivityService.SeedActivities();
+        await ActivityService.SeedActivities(cancellationToken);
     }
 
     var activities = ActivityService.GetActivities();
@@ -47,7 +55,7 @@ async Task<int> ActivityTypeAction(ActivityTypeOptions opts)
     return 0;
 }
 
-async Task<int> ConfigAction(ConfigOptions opts)
+async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationToken)
 {
     var validator = new ConfigValidator();
 
@@ -65,7 +73,7 @@ async Task<int> ConfigAction(ConfigOptions opts)
 
     Console.WriteLine("Obtaining User Id...");
 
-    var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken);
+    var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken, cancellationToken);
 
     Console.WriteLine("User ID obtained successfully.");
 
@@ -77,14 +85,14 @@ async Task<int> ConfigAction(ConfigOptions opts)
 
     Console.WriteLine("Creating activities...");
 
-    await ActivityService.SeedActivities();
+    await ActivityService.SeedActivities(cancellationToken);
 
     Console.WriteLine("Activities file created.");
 
     return 0;
 }
 
-static async Task<int> AddActions(AddOptions opts)
+static async Task<int> AddActions(AddOptions opts, CancellationToken cancellationToken)
 {
     if (!ConfigService.ConfigExists())
     {
@@ -110,7 +118,7 @@ static async Task<int> AddActions(AddOptions opts)
 
     var activityId = ActivityService.GetActivityId(opts.ActivityType, activities);
 
-    await HttpService.RegisterActivity(opts, activityId);
+    await HttpService.RegisterActivity(opts, activityId, cancellationToken);
 
     ConsoleHelper.WriteSuccess("Activity successfully created.");
 

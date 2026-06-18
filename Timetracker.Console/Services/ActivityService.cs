@@ -52,11 +52,11 @@ public static class ActivityService
         return found.Id;
     }
 
-    public async static Task SeedActivities()
+    public static async Task SeedActivities(CancellationToken cancellationToken = default)
     {
         var filePath = GetActivityPath();
 
-        var activities = await HttpService.ListActivityTypes();
+        var activities = await HttpService.ListActivityTypes(cancellationToken);
 
         File.WriteAllText(filePath, JsonConvert.SerializeObject(activities.Data.ActivityTypes, Formatting.Indented));
     }

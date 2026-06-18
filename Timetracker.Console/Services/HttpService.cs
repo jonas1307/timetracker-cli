@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using RestSharp;
 using Timetracker.Options;
 using Timetracker.Requests;
@@ -10,7 +10,7 @@ namespace Timetracker.Services
     {
         private const string TIMETRACKER_API_VERSION = "3.2";
 
-        public static async Task RegisterActivity(AddOptions options, string activityId)
+        public static async Task RegisterActivity(AddOptions options, string activityId, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
 
@@ -31,7 +31,7 @@ namespace Timetracker.Services
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
             request.AddJsonBody(worklog);
 
-            var response = await client.ExecuteAsync(request);
+            var response = await client.ExecuteAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -39,7 +39,7 @@ namespace Timetracker.Services
             }
         }
 
-        public static async Task<TimetrackerResponse<ActivityTypeResponse>> ListActivityTypes()
+        public static async Task<TimetrackerResponse<ActivityTypeResponse>> ListActivityTypes(CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
             using var client = new RestClient(config.TimetrackerUrl);
@@ -47,7 +47,7 @@ namespace Timetracker.Services
             var request = new RestRequest($"/api/rest/activityTypes?api-version={TIMETRACKER_API_VERSION}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
 
-            var response = await client.ExecuteAsync(request);
+            var response = await client.ExecuteAsync(request, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -57,14 +57,14 @@ namespace Timetracker.Services
             throw new Exception("Could not retrieve the list of activities.");
         }
 
-        public static async Task<TimetrackerResponse<TimetrackerUserResponse>> GetTimetrackerUser(string timetrackerUrl, string timetrackerBearerToken)
+        public static async Task<TimetrackerResponse<TimetrackerUserResponse>> GetTimetrackerUser(string timetrackerUrl, string timetrackerBearerToken, CancellationToken cancellationToken = default)
         {
             using var client = new RestClient(timetrackerUrl);
 
             var request = new RestRequest($"/api/rest/me?api-version={TIMETRACKER_API_VERSION}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {timetrackerBearerToken}");
 
-            var response = await client.ExecuteAsync(request);
+            var response = await client.ExecuteAsync(request, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
