@@ -28,7 +28,7 @@ async Task<int> ActivityTypeAction(ActivityTypeOptions opts)
         if (!ConfigService.ConfigExists())
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Configuration not found. Please run the 'config' command first.");
+            Console.Error.WriteLine("Configuration not found. Please run the 'config' command first.");
             return 1;
         }
 
@@ -72,7 +72,7 @@ async Task<int> ConfigAction(ConfigOptions opts)
 
             foreach (var error in result.Errors)
             {
-                Console.WriteLine($"- {error.ErrorMessage}");
+                Console.Error.WriteLine($"- {error.ErrorMessage}");
             }
 
             return 1;
@@ -114,7 +114,7 @@ static async Task<int> AddActions(AddOptions opts)
         if (!ConfigService.ConfigExists())
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Configuration not found. Please run the 'config' command first.");
+            Console.Error.WriteLine("Configuration not found. Please run the 'config' command first.");
             return 1;
         }
 
@@ -130,7 +130,7 @@ static async Task<int> AddActions(AddOptions opts)
 
             foreach (var error in result.Errors)
             {
-                Console.WriteLine($"- {error.ErrorMessage}");
+                Console.Error.WriteLine($"- {error.ErrorMessage}");
             }
 
             return 1;
