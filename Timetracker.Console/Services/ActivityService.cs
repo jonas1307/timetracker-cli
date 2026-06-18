@@ -41,10 +41,8 @@ public static class ActivityService
         return JsonConvert.DeserializeObject<IList<Activity>>(File.ReadAllText(filePath));
     }
 
-    public static string GetActivityId(string activity)
+    public static string GetActivityId(string activity, IList<Activity> activities)
     {
-        var activities = GetActivities();
-
         var found = activities.FirstOrDefault(x => x.Name.Equals(activity, StringComparison.CurrentCultureIgnoreCase));
 
         if (found is null)

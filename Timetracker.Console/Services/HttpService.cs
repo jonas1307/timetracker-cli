@@ -10,10 +10,9 @@ namespace Timetracker.Services
     {
         private const string TIMETRACKER_API_VERSION = "3.2";
 
-        public static async Task RegisterActivity(AddOptions options)
+        public static async Task RegisterActivity(AddOptions options, string activityId)
         {
             var config = ConfigService.LoadConfig();
-            var activityId = ActivityService.GetActivityId(options.ActivityType);
 
             var worklog = new TimetrackerWorklogRequest
             {

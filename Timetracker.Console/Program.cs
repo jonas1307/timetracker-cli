@@ -104,10 +104,9 @@ static async Task AddActions(AddOptions opts)
             return;
         }
 
-        var activities = ActivityService.GetActivities()
-            .Select(x => x.Name.ToUpper());
+        var activities = ActivityService.GetActivities();
 
-        var validator = new AddValidator(activities);
+        var validator = new AddValidator(activities.Select(x => x.Name.ToUpper()));
 
         var result = validator.Validate(opts);
 
@@ -123,7 +122,9 @@ static async Task AddActions(AddOptions opts)
             return;
         }
 
-        await HttpService.RegisterActivity(opts);
+        var activityId = ActivityService.GetActivityId(opts.ActivityType, activities);
+
+        await HttpService.RegisterActivity(opts, activityId);
 
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("Activity successfully created.");
