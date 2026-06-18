@@ -10,4 +10,7 @@ public class ListOptions
 
     [Option('t', "to", Required = false, HelpText = "End date in the format YYYY/MM/DD, 'today' or 'yesterday'. Defaults to today.")]
     public string To { get; set; }
+
+    [Option('s', "summary", Required = false, HelpText = "Display a daily summary instead of individual entries.")]
+    public bool Summary { get; set; }
 }

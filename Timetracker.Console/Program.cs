@@ -152,21 +152,40 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         return 0;
     }
 
-    Console.WriteLine($"Time entries from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
-    Console.WriteLine();
+    var totalHours = Math.Round(workLogs.Sum(x => x.Length) / 3600m, 2);
 
-    foreach (var log in workLogs.OrderBy(x => x.TimeStamp))
+    if (opts.Summary)
     {
-        var hours = Math.Round(log.Length / 3600m, 2);
-        var type = log.ActivityType?.Name ?? "-";
-        var comment = string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment;
+        Console.WriteLine($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
+        Console.WriteLine();
 
-        Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm}  |  WI: {log.WorkItemId,-8}  |  {hours,5}h  |  {type,-20}  |  {comment}");
+        var byDay = workLogs
+            .GroupBy(x => x.TimeStamp.Date)
+            .OrderBy(g => g.Key);
+
+        foreach (var day in byDay)
+        {
+            var dayHours = Math.Round(day.Sum(x => x.Length) / 3600m, 2);
+            var count = day.Count();
+            Console.WriteLine($"  {day.Key:yyyy/MM/dd}  |  {dayHours,5}h  |  {count} {(count == 1 ? "entry" : "entries")}");
+        }
+    }
+    else
+    {
+        Console.WriteLine($"Time entries from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
+        Console.WriteLine();
+
+        foreach (var log in workLogs.OrderBy(x => x.TimeStamp))
+        {
+            var hours = Math.Round(log.Length / 3600m, 2);
+            var type = log.ActivityType?.Name ?? "-";
+            var comment = string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment;
+
+            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm}  |  WI: {log.WorkItemId,-8}  |  {hours,5}h  |  {type,-20}  |  {comment}");
+        }
     }
 
     Console.WriteLine();
-
-    var totalHours = Math.Round(workLogs.Sum(x => x.Length) / 3600m, 2);
     ConsoleHelper.WriteSuccess($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
