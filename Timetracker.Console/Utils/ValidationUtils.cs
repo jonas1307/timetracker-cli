@@ -1,4 +1,6 @@
-﻿namespace Timetracker.Utils;
+﻿using System.Globalization;
+
+namespace Timetracker.Utils;
 
 public static class ValidationUtils
 {
@@ -19,5 +21,18 @@ public static class ValidationUtils
             return DateTime.Today.AddDays(-1);
 
         return DateTime.Parse(input);
+    }
+
+    public static bool TryResolveMonth(string input, out DateTime firstDay, out DateTime lastDay)
+    {
+        firstDay = default;
+        lastDay = default;
+
+        if (!DateTime.TryParseExact(input, "yyyy/MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out var month))
+            return false;
+
+        firstDay = new DateTime(month.Year, month.Month, 1);
+        lastDay = firstDay.AddMonths(1).AddDays(-1);
+        return true;
     }
 }

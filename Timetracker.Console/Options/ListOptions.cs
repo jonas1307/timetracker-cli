@@ -16,4 +16,7 @@ public class ListOptions
 
     [Option('i', "ids", Required = false, HelpText = "Show entry IDs instead of comments. Useful for identifying entries to delete.")]
     public bool ShowIds { get; set; }
+
+    [Option('m', "month", Required = false, HelpText = "Show the monthly summary for a specific month in the format YYYY/MM (e.g., 2026/06). Cannot be used with --from or --to.")]
+    public string Month { get; set; }
 }

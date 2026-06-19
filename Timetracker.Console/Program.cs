@@ -150,13 +150,32 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         return 1;
     }
 
-    var from = ValidationUtils.ResolveDate(opts.From);
-    var to = ValidationUtils.ResolveDate(opts.To);
+    DateTime from, to;
 
-    if (from > to)
+    if (!string.IsNullOrEmpty(opts.Month))
     {
-        ConsoleHelper.WriteError("The 'from' date must be earlier than or equal to the 'to' date.");
-        return 1;
+        if (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To))
+        {
+            ConsoleHelper.WriteError("--month cannot be used together with --from or --to.");
+            return 1;
+        }
+
+        if (!ValidationUtils.TryResolveMonth(opts.Month, out from, out to))
+        {
+            ConsoleHelper.WriteError("Invalid month format. Use YYYY/MM (e.g., 2026/06).");
+            return 1;
+        }
+    }
+    else
+    {
+        from = ValidationUtils.ResolveDate(opts.From);
+        to = ValidationUtils.ResolveDate(opts.To);
+
+        if (from > to)
+        {
+            ConsoleHelper.WriteError("The 'from' date must be earlier than or equal to the 'to' date.");
+            return 1;
+        }
     }
 
     var result = await HttpService.ListWorkLogs(from, to, cancellationToken);
