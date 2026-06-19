@@ -219,20 +219,25 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     DateTime from, to;
 
-    if (opts.Week && !string.IsNullOrEmpty(opts.Month))
+    var periodFlags = new[] { opts.Today, opts.Week, !string.IsNullOrEmpty(opts.Month) }.Count(x => x);
+    if (periodFlags > 1)
     {
-        ConsoleHelper.WriteError("--week cannot be used together with --month.");
+        ConsoleHelper.WriteError("--today, --week and --month are mutually exclusive.");
         return 1;
     }
 
-    if (opts.Week)
+    if ((opts.Today || opts.Week) && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
     {
-        if (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To))
-        {
-            ConsoleHelper.WriteError("--week cannot be used together with --from or --to.");
-            return 1;
-        }
+        ConsoleHelper.WriteError("--today and --week cannot be used together with --from or --to.");
+        return 1;
+    }
 
+    if (opts.Today)
+    {
+        from = to = DateTime.Today;
+    }
+    else if (opts.Week)
+    {
         (from, to) = ValidationUtils.ResolveCurrentWeek();
     }
     else if (!string.IsNullOrEmpty(opts.Month))

@@ -23,6 +23,9 @@ public class ListOptions
     [Option("week", Required = false, HelpText = "Show entries for the current week (Monday to Sunday). Cannot be used with --from, --to or --month.")]
     public bool Week { get; set; }
 
+    [Option("today", Required = false, HelpText = "Show entries for today. Cannot be used with --from, --to, --week or --month.")]
+    public bool Today { get; set; }
+
     [Option('w', "work-item", Required = false, HelpText = "Filter entries by Work Item ID.")]
     public int? WorkItemId { get; set; }
 
