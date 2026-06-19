@@ -8,7 +8,7 @@ public class ConfigValidator : AbstractValidator<ConfigOptions>
 {
     public ConfigValidator()
     {
-        When(x => !x.Show, () =>
+        When(x => !x.Show && !x.Reset, () =>
         {
             RuleFor(x => x.TimetrackerBearerToken)
                 .NotEmpty().WithMessage("A Bearer token is required for authentication.");

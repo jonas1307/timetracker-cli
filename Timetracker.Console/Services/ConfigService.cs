@@ -34,6 +34,14 @@ public static class ConfigService
 
     public static bool ConfigExists() => File.Exists(GetConfigPath());
 
+    public static void DeleteConfig()
+    {
+        var configPath = GetConfigPath();
+        
+        if (File.Exists(configPath))
+            File.Delete(configPath);
+    }
+
     public static Config LoadConfig()
     {
         var configPath = GetConfigPath();

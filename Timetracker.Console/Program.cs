@@ -82,6 +82,16 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         return 0;
     }
 
+    if (opts.Reset)
+    {
+        ConfigService.DeleteConfig();
+        ActivityService.DeleteActivities();
+        
+        ConsoleHelper.WriteSuccess("Configuration reset successfully. Run 'config --url <url> --token <token>' to reconfigure.");
+        
+        return 0;
+    }
+
     var validator = new ConfigValidator();
 
     var result = validator.Validate(opts);

@@ -13,4 +13,7 @@ public class ConfigOptions
 
     [Option('s', "show", Required = false, HelpText = "Display the current configuration, masking the bearer token.")]
     public bool Show { get; set; }
+
+    [Option('r', "reset", Required = false, HelpText = "Remove all local configuration and activity cache files.")]
+    public bool Reset { get; set; }
 }

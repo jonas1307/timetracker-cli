@@ -52,6 +52,14 @@ public static class ActivityService
         return found.Id;
     }
 
+    public static void DeleteActivities()
+    {
+        var filePath = GetActivityPath();
+        
+        if (File.Exists(filePath))
+            File.Delete(filePath);
+    }
+
     public static async Task SeedActivities(CancellationToken cancellationToken = default)
     {
         var filePath = GetActivityPath();
