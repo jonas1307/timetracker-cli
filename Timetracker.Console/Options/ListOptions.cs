@@ -25,4 +25,7 @@ public class ListOptions
 
     [Option("workitem", Required = false, HelpText = "Filter entries by Work Item ID.")]
     public int? WorkItemId { get; set; }
+
+    [Option('o', "output", Required = false, HelpText = "Output format. Use 'json' to export entries in batch-upload format.")]
+    public string Output { get; set; }
 }

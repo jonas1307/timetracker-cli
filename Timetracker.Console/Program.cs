@@ -1,4 +1,5 @@
 using CommandLine;
+using Newtonsoft.Json;
 using Timetracker.Options;
 using Timetracker.Requests;
 using Timetracker.Services;
@@ -248,6 +249,25 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     if (workLogs is null || workLogs.Count == 0)
     {
         Console.WriteLine("No time entries found for the specified period.");
+        return 0;
+    }
+
+    if (string.Equals(opts.Output, "json", StringComparison.OrdinalIgnoreCase))
+    {
+        var config = ConfigService.LoadConfig();
+        var batch = workLogs.OrderBy(x => x.TimeStamp).Select(log => new TimetrackerWorklogRequest
+        {
+            TimeStamp = log.TimeStamp,
+            Length = log.Length,
+            BillableLength = null,
+            WorkItemId = log.WorkItemId,
+            Comment = log.Comment,
+            UserId = config.TimetrackerUserId,
+            ActivityTypeId = log.ActivityType?.Id
+        });
+        
+        Console.WriteLine(JsonConvert.SerializeObject(batch, Formatting.Indented));
+        
         return 0;
     }
 
