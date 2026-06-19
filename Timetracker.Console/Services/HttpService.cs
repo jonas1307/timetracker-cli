@@ -3,6 +3,7 @@ using RestSharp;
 using Timetracker.Options;
 using Timetracker.Requests;
 using Timetracker.Responses;
+using Timetracker.Utils;
 
 namespace Timetracker.Services
 {
@@ -16,7 +17,7 @@ namespace Timetracker.Services
 
             var worklog = new TimetrackerWorklogRequest
             {
-                TimeStamp = DateTime.Parse($"{options.ActivityDate} {options.ActivityStartHour}"),
+                TimeStamp = ValidationUtils.ResolveDate(options.ActivityDate).Add(TimeSpan.Parse(options.ActivityStartHour)),
                 Length = (int)Math.Round(options.ActivityLength * 3600),
                 BillableLength = null,
                 WorkItemId = options.WorkItemId,

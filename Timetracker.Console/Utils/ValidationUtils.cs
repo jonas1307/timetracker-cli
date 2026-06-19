@@ -1,10 +1,20 @@
 ﻿using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Timetracker.Utils;
 
 public static class ValidationUtils
 {
     public static bool ValidDate(string date) => DateTime.TryParse(date, out _);
+
+    public static bool ValidActivityDate(string date)
+    {
+        if (string.IsNullOrEmpty(date)) return false;
+        if (date.Equals("today", StringComparison.OrdinalIgnoreCase)) return true;
+        if (date.Equals("yesterday", StringComparison.OrdinalIgnoreCase)) return true;
+
+        return Regex.IsMatch(date, @"^\d{4}/\d{2}/\d{2}$") && ValidDate(date);
+    }
 
     public static bool ValidType(IEnumerable<string> activities, string type) => activities.Contains(type.ToUpper());
 

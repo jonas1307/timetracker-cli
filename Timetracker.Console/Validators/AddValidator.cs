@@ -13,8 +13,8 @@ public class AddValidator : AbstractValidator<AddOptions>
         _activities = activities;
 
         RuleFor(x => x.ActivityDate)
-            .Matches(@"^\d{4}/\d{2}/\d{2}$").WithMessage("Please provide a date in the format YYYY/MM/DD (e.g., 2025/12/31).")
-            .Must(ValidationUtils.ValidDate).WithMessage("The provided date is invalid. Please check the date and try again.");
+            .Must(ValidationUtils.ValidActivityDate)
+            .WithMessage("Please provide a valid date in the format YYYY/MM/DD (e.g., 2025/12/31), 'today', or 'yesterday'.");
 
         RuleFor(x => x.WorkItemId)
             .GreaterThan(0).WithMessage("Work Item ID must be greater than 0.");
