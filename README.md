@@ -19,7 +19,7 @@ dotnet publish Timetracker.Console -c Release
 Before using any command, run `config` to authenticate and cache your activity types locally:
 
 ```bash
-timetracker config --url https://<company>.timehub.7pace.com --token <bearer-token>
+timetracker config -u https://<company>.timehub.7pace.com -t <bearer-token>
 ```
 
 ---
@@ -52,7 +52,7 @@ Configure the connection to your Timetracker instance.
 
 ```bash
 # Initial setup
-timetracker config --url https://acme.timehub.7pace.com --token eyJ...
+timetracker config -u https://acme.timehub.7pace.com -t eyJ...
 
 # View current config
 timetracker config --show
