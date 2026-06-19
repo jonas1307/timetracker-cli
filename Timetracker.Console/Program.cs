@@ -229,7 +229,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         }
     }
 
-    var result = await HttpService.ListWorkLogs(from, to, cancellationToken);
+    var result = await HttpService.ListWorkLogs(from, to, opts.WorkItemId, cancellationToken);
     var workLogs = result.Data;
 
     if (workLogs is null || workLogs.Count == 0)
