@@ -85,4 +85,25 @@ namespace Timetracker.Responses
         [JsonProperty("id")]
         public string Id { get; set; }
     }
+
+    public class WorkLog
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("timeStamp")]
+        public DateTime TimeStamp { get; set; }
+
+        [JsonProperty("length")]
+        public int Length { get; set; }
+
+        [JsonProperty("workItemId")]
+        public int WorkItemId { get; set; }
+
+        [JsonProperty("comment")]
+        public string Comment { get; set; }
+
+        [JsonProperty("activityType")]
+        public ActivityType ActivityType { get; set; }
+    }
 }

@@ -57,6 +57,25 @@ namespace Timetracker.Services
             throw new Exception("Could not retrieve the list of activities.");
         }
 
+        public static async Task<TimetrackerResponse<List<WorkLog>>> ListWorkLogs(DateTime from, DateTime to, CancellationToken cancellationToken = default)
+        {
+            var config = ConfigService.LoadConfig();
+            using var client = new RestClient(config.TimetrackerUrl);
+            var request = new RestRequest($"/api/rest/workLogs?api-version={TIMETRACKER_API_VERSION}", Method.Get);
+            request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
+            request.AddQueryParameter("$fromTimestamp", from.ToString("yyyy-MM-ddT00:00:00"));
+            request.AddQueryParameter("$toTimestamp", to.ToString("yyyy-MM-ddT23:59:59"));
+
+            var response = await client.ExecuteAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonConvert.DeserializeObject<TimetrackerResponse<List<WorkLog>>>(response.Content);
+            }
+
+            throw new Exception("Could not retrieve the list of work logs.");
+        }
+
         public static async Task DeleteWorkLog(string workLogId, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
