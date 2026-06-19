@@ -123,11 +123,12 @@ List time entries for a period.
 | `--yesterday` | | no | Shortcut for yesterday's entries |
 | `--week` | | no | Entries for the current week (Mon–Sun) |
 | `--last-week` | | no | Entries for the previous week (Mon–Sun) |
+| `--this-month` | | no | Entries for the current month |
+| `--last-month` | | no | Entries for the previous month |
 | `--summary` | | no | Daily summary instead of individual entries |
 | `--ids` | | no | Show entry IDs instead of comments |
 
-`--today`, `--yesterday`, `--week`, `--last-week`, and `--month` are mutually exclusive.
-`--today`, `--yesterday`, `--week`, and `--last-week` cannot be combined with `--from` or `--to`.
+All period shortcuts (`--today`, `--yesterday`, `--week`, `--last-week`, `--this-month`, `--last-month`) and `--month` are mutually exclusive and cannot be combined with `--from` or `--to`.
 
 ```bash
 # Today's entries
@@ -141,6 +142,12 @@ timetracker list --week
 
 # Previous week
 timetracker list --last-week
+
+# Current month
+timetracker list --this-month
+
+# Previous month
+timetracker list --last-month
 
 # Specific date range
 timetracker list -f 2026/06/01 -t 2026/06/30

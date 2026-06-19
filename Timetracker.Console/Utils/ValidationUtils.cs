@@ -48,6 +48,20 @@ public static class ValidationUtils
         return (lastMonday, lastMonday.AddDays(6));
     }
 
+    public static (DateTime From, DateTime To) ResolveCurrentMonth()
+    {
+        var today = DateTime.Today;
+        var firstDay = new DateTime(today.Year, today.Month, 1);
+        return (firstDay, firstDay.AddMonths(1).AddDays(-1));
+    }
+
+    public static (DateTime From, DateTime To) ResolveLastMonth()
+    {
+        var today = DateTime.Today;
+        var firstDay = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
+        return (firstDay, firstDay.AddMonths(1).AddDays(-1));
+    }
+
     public static bool TryResolveMonth(string input, out DateTime firstDay, out DateTime lastDay)
     {
         firstDay = default;

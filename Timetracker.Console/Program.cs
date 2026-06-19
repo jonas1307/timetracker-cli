@@ -202,16 +202,16 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     DateTime from, to;
 
-    var periodFlags = new[] { opts.Today, opts.Yesterday, opts.Week, opts.LastWeek, !string.IsNullOrEmpty(opts.Month) }.Count(x => x);
+    var periodFlags = new[] { opts.Today, opts.Yesterday, opts.Week, opts.LastWeek, opts.ThisMonth, opts.LastMonth, !string.IsNullOrEmpty(opts.Month) }.Count(x => x);
     if (periodFlags > 1)
     {
-        ConsoleHelper.WriteError("--today, --yesterday, --week, --last-week and --month are mutually exclusive.");
+        ConsoleHelper.WriteError("--today, --yesterday, --week, --last-week, --this-month, --last-month and --month are mutually exclusive.");
         return 1;
     }
 
-    if ((opts.Today || opts.Yesterday || opts.Week || opts.LastWeek) && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
+    if ((opts.Today || opts.Yesterday || opts.Week || opts.LastWeek || opts.ThisMonth || opts.LastMonth) && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
     {
-        ConsoleHelper.WriteError("--today, --yesterday, --week and --last-week cannot be used together with --from or --to.");
+        ConsoleHelper.WriteError("Period shortcuts cannot be used together with --from or --to.");
         return 1;
     }
 
@@ -230,6 +230,14 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     else if (opts.LastWeek)
     {
         (from, to) = ValidationUtils.ResolveLastWeek();
+    }
+    else if (opts.ThisMonth)
+    {
+        (from, to) = ValidationUtils.ResolveCurrentMonth();
+    }
+    else if (opts.LastMonth)
+    {
+        (from, to) = ValidationUtils.ResolveLastMonth();
     }
     else if (!string.IsNullOrEmpty(opts.Month))
     {

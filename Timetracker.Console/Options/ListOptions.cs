@@ -14,6 +14,12 @@ public class ListOptions
     [Option('m', "month", Required = false, HelpText = "Show entries for a specific month in the format YYYY/MM (e.g., 2026/06). Cannot be used with --from, --to or --week.")]
     public string Month { get; set; }
 
+    [Option("this-month", Required = false, HelpText = "Show entries for the current month. Cannot be used with --from, --to, --month or week shortcuts.")]
+    public bool ThisMonth { get; set; }
+
+    [Option("last-month", Required = false, HelpText = "Show entries for the previous month. Cannot be used with --from, --to, --month or week shortcuts.")]
+    public bool LastMonth { get; set; }
+
     [Option('w', "work-item", Required = false, HelpText = "Filter entries by Work Item ID.")]
     public int? WorkItemId { get; set; }
 
