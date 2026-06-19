@@ -10,7 +10,7 @@ Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
 try
 {
-    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions>(args)
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions, CopyOptions>(args)
         .MapResult(
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
@@ -18,6 +18,7 @@ try
             async (ListOptions opts) => await ListActions(opts, cts.Token),
             async (DeleteOptions opts) => await DeleteAction(opts, cts.Token),
             async (UpdateOptions opts) => await UpdateAction(opts, cts.Token),
+            async (CopyOptions opts) => await CopyAction(opts, cts.Token),
             errs => Task.FromResult(1)
         );
 }
@@ -331,6 +332,42 @@ static async Task<int> UpdateAction(UpdateOptions opts, CancellationToken cancel
     await HttpService.UpdateWorkLog(opts.WorkLogId, updated, cancellationToken);
 
     ConsoleHelper.WriteSuccess($"Time entry '{opts.WorkLogId}' updated successfully.");
+
+    return 0;
+}
+
+static async Task<int> CopyAction(CopyOptions opts, CancellationToken cancellationToken)
+{
+    if (!ConfigService.ConfigExists())
+    {
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
+    }
+
+    if (opts.ActivityDate != null && !ValidationUtils.ValidActivityDate(opts.ActivityDate))
+    {
+        ConsoleHelper.WriteError("Invalid date. Use YYYY/MM/DD, 'today' or 'yesterday'.");
+        return 1;
+    }
+
+    var source = await HttpService.GetWorkLog(opts.WorkLogId, cancellationToken);
+    var targetDate = ValidationUtils.ResolveDate(opts.ActivityDate);
+    var config = ConfigService.LoadConfig();
+
+    var copy = new TimetrackerWorklogRequest
+    {
+        TimeStamp = targetDate.Add(source.TimeStamp.TimeOfDay),
+        Length = source.Length,
+        BillableLength = null,
+        WorkItemId = source.WorkItemId,
+        Comment = source.Comment,
+        UserId = config.TimetrackerUserId,
+        ActivityTypeId = source.ActivityType.Id
+    };
+
+    var createdId = await HttpService.PostWorkLog(copy, cancellationToken);
+
+    ConsoleHelper.WriteSuccess($"Time entry copied successfully. New ID: {createdId}");
 
     return 0;
 }

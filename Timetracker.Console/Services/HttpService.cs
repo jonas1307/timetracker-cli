@@ -26,6 +26,12 @@ namespace Timetracker.Services
                 ActivityTypeId = activityId
             };
 
+            return await PostWorkLog(worklog, cancellationToken);
+        }
+
+        public static async Task<string> PostWorkLog(TimetrackerWorklogRequest worklog, CancellationToken cancellationToken = default)
+        {
+            var config = ConfigService.LoadConfig();
             using var client = new RestClient(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/workLogs?api-version={TIMETRACKER_API_VERSION}", Method.Post);
@@ -35,9 +41,7 @@ namespace Timetracker.Services
             var response = await client.ExecuteAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
-            {
                 throw new Exception($"Failed to register activity. Response: {response.Content}.");
-            }
 
             return JsonConvert.DeserializeObject<TimetrackerResponse<WorkLog>>(response.Content).Data.Id;
         }
