@@ -167,7 +167,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         {
             var dayHours = Math.Round(day.Sum(x => x.Length) / 3600m, 2);
             var count = day.Count();
-            Console.WriteLine($"  {day.Key:yyyy/MM/dd}  |  {dayHours,5}h  |  {count} {(count == 1 ? "entry" : "entries")}");
+            Console.WriteLine($"  {day.Key:yyyy/MM/dd} | {dayHours,4}h | {count} {(count == 1 ? "entry" : "entries")}");
         }
     }
     else
@@ -181,7 +181,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
             var type = log.ActivityType?.Name ?? "-";
             var comment = string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment;
 
-            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm}  |  WI: {log.WorkItemId,-8}  |  {hours,5}h  |  {type,-20}  |  {comment}");
+            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {comment}");
         }
     }
 
