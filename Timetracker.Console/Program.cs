@@ -181,7 +181,24 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
         Console.WriteLine($"  Type:        {opts.ActivityType}");
         Console.WriteLine($"  Comment:     {(string.IsNullOrEmpty(opts.ActivityComment) ? "-" : opts.ActivityComment)}");
         Console.WriteLine();
-        ConsoleHelper.WriteSuccess("Dry run complete. No entry was submitted.");
+        Console.WriteLine("Validating against the API...");
+
+        var config = ConfigService.LoadConfig();
+        var worklog = new TimetrackerWorklogRequest
+        {
+            TimeStamp = resolvedDate.Add(TimeSpan.Parse(opts.ActivityStartHour)),
+            Length = (int)Math.Round(opts.ActivityLength * 3600),
+            BillableLength = null,
+            WorkItemId = opts.WorkItemId,
+            Comment = opts.ActivityComment,
+            UserId = config.TimetrackerUserId,
+            ActivityTypeId = activityId
+        };
+
+        await HttpService.ImportWorkLogs([worklog], validateOnly: true, cancellationToken);
+
+        Console.WriteLine();
+        ConsoleHelper.WriteSuccess("Dry run complete. Entry is valid. No entry was submitted.");
         return 0;
     }
 
