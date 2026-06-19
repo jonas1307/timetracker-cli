@@ -9,12 +9,13 @@ Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
 try
 {
-    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions>(args)
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions, DeleteOptions>(args)
         .MapResult(
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
             async (ActivityTypeOptions opts) => await ActivityTypeAction(opts, cts.Token),
-            async (ListOptions opts) => await ListActions(opts, cts.Token),
+            async (ListOptions opts) => await ListActions(opts, cts.Token),      
+            async (DeleteOptions opts) => await DeleteAction(opts, cts.Token),
             errs => Task.FromResult(1)
         );
 }
@@ -89,6 +90,21 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
     await ActivityService.SeedActivities(cancellationToken);
 
     Console.WriteLine("Activities file created.");
+
+    return 0;
+}
+
+static async Task<int> DeleteAction(DeleteOptions opts, CancellationToken cancellationToken)
+{
+    if (!ConfigService.ConfigExists())
+    {
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
+    }
+
+    await HttpService.DeleteWorkLog(opts.WorkLogId, cancellationToken);
+
+    ConsoleHelper.WriteSuccess($"Time entry '{opts.WorkLogId}' deleted successfully.");
 
     return 0;
 }
