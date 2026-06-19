@@ -239,14 +239,14 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     DateTime from, to;
 
-    var periodFlags = new[] { opts.Today, opts.Yesterday, opts.Week, opts.LastWeek, opts.ThisMonth, opts.LastMonth, !string.IsNullOrEmpty(opts.Month) }.Count(x => x);
+    var periodFlags = new[] { opts.Today, opts.Yesterday, opts.Week, opts.LastWeek, opts.Month, opts.LastMonth, !string.IsNullOrEmpty(opts.Period) }.Count(x => x);
     if (periodFlags > 1)
     {
-        ConsoleHelper.WriteError("--today, --yesterday, --week, --last-week, --this-month, --last-month and --month are mutually exclusive.");
+        ConsoleHelper.WriteError("--today, --yesterday, --week, --last-week, --month, --last-month and --period are mutually exclusive.");
         return 1;
     }
 
-    if ((opts.Today || opts.Yesterday || opts.Week || opts.LastWeek || opts.ThisMonth || opts.LastMonth) && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
+    if ((opts.Today || opts.Yesterday || opts.Week || opts.LastWeek || opts.Month || opts.LastMonth) && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
     {
         ConsoleHelper.WriteError("Period shortcuts cannot be used together with --from or --to.");
         return 1;
@@ -268,7 +268,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     {
         (from, to) = ValidationUtils.ResolveLastWeek();
     }
-    else if (opts.ThisMonth)
+    else if (opts.Month)
     {
         (from, to) = ValidationUtils.ResolveCurrentMonth();
     }
@@ -276,17 +276,17 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     {
         (from, to) = ValidationUtils.ResolveLastMonth();
     }
-    else if (!string.IsNullOrEmpty(opts.Month))
+    else if (!string.IsNullOrEmpty(opts.Period))
     {
         if (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To))
         {
-            ConsoleHelper.WriteError("--month cannot be used together with --from or --to.");
+            ConsoleHelper.WriteError("--period cannot be used together with --from or --to.");
             return 1;
         }
 
-        if (!ValidationUtils.TryResolveMonth(opts.Month, out from, out to))
+        if (!ValidationUtils.TryResolveMonth(opts.Period, out from, out to))
         {
-            ConsoleHelper.WriteError("Invalid month format. Use YYYY/MM (e.g., 2026/06).");
+            ConsoleHelper.WriteError("Invalid period format. Use YYYY/MM (e.g., 2026/06).");
             return 1;
         }
     }

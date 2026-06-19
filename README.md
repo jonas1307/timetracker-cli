@@ -116,19 +116,19 @@ List time entries for a period.
 |---|---|---|---|
 | `--from` | `-f` | no | Start date (default: today) |
 | `--to` | `-t` | no | End date (default: today) |
-| `--month` | `-m` | no | Month in `YYYY/MM` format |
+| `--period` | `-p` | no | Specific month in `YYYY/MM` format (e.g. `2026/06`) |
 | `--work-item` | `-w` | no | Filter by Work Item ID |
 | `--output` | `-o` | no | Output format: `json` (batch-upload compatible) or `csv` |
 | `--today` | | no | Shortcut for today's entries |
 | `--yesterday` | | no | Shortcut for yesterday's entries |
 | `--week` | | no | Entries for the current week (Mon–Sun) |
 | `--last-week` | | no | Entries for the previous week (Mon–Sun) |
-| `--this-month` | | no | Entries for the current month |
+| `--month` | | no | Entries for the current month |
 | `--last-month` | | no | Entries for the previous month |
 | `--summary` | | no | Daily summary instead of individual entries |
 | `--ids` | | no | Show entry IDs instead of comments |
 
-All period shortcuts (`--today`, `--yesterday`, `--week`, `--last-week`, `--this-month`, `--last-month`) and `--month` are mutually exclusive and cannot be combined with `--from` or `--to`.
+All period shortcuts (`--today`, `--yesterday`, `--week`, `--last-week`, `--month`, `--last-month`) and `--period` are mutually exclusive and cannot be combined with `--from` or `--to`.
 
 ```bash
 # Today's entries
@@ -144,7 +144,7 @@ timetracker list --week
 timetracker list --last-week
 
 # Current month
-timetracker list --this-month
+timetracker list --month
 
 # Previous month
 timetracker list --last-month
@@ -152,8 +152,8 @@ timetracker list --last-month
 # Specific date range
 timetracker list -f 2026/06/01 -t 2026/06/30
 
-# Monthly summary by day
-timetracker list --month 2026/06 --summary
+# Specific month summary by day
+timetracker list --period 2026/06 --summary
 
 # Filter by work item and show IDs (for delete/update)
 timetracker list --week --work-item 12345 --ids
@@ -162,7 +162,7 @@ timetracker list --week --work-item 12345 --ids
 timetracker list --week --output json > worklogs.json
 
 # Export month as CSV
-timetracker list --this-month --output csv > worklogs.csv
+timetracker list --month --output csv > worklogs.csv
 ```
 
 ---
@@ -299,5 +299,9 @@ timetracker import --file worklogs.json
 ### Monthly summary
 
 ```bash
-timetracker list --month 2026/06 --summary
+# Current month
+timetracker list --month --summary
+
+# Specific month
+timetracker list --period 2026/06 --summary
 ```
