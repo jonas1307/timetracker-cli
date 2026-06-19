@@ -13,4 +13,7 @@ public class ListOptions
 
     [Option('s', "summary", Required = false, HelpText = "Display a daily summary instead of individual entries.")]
     public bool Summary { get; set; }
+
+    [Option('i', "ids", Required = false, HelpText = "Show entry IDs instead of comments. Useful for identifying entries to delete.")]
+    public bool ShowIds { get; set; }
 }

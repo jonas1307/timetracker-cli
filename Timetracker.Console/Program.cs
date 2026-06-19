@@ -179,9 +179,9 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         {
             var hours = Math.Round(log.Length / 3600m, 2);
             var type = log.ActivityType?.Name ?? "-";
-            var comment = string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment;
+            var lastColumn = opts.ShowIds ? log.Id : (string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment);
 
-            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {comment}");
+            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {lastColumn}");
         }
     }
 
