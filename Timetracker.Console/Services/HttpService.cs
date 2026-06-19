@@ -11,7 +11,7 @@ namespace Timetracker.Services
     {
         private const string TIMETRACKER_API_VERSION = "3.2";
 
-        public static async Task RegisterActivity(AddOptions options, string activityId, CancellationToken cancellationToken = default)
+        public static async Task<string> RegisterActivity(AddOptions options, string activityId, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
 
@@ -38,6 +38,8 @@ namespace Timetracker.Services
             {
                 throw new Exception($"Failed to register activity. Response: {response.Content}.");
             }
+
+            return JsonConvert.DeserializeObject<TimetrackerResponse<WorkLog>>(response.Content).Data.Id;
         }
 
         public static async Task<TimetrackerResponse<ActivityTypeResponse>> ListActivityTypes(CancellationToken cancellationToken = default)

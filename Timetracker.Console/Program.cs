@@ -170,9 +170,9 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
         return 0;
     }
 
-    await HttpService.RegisterActivity(opts, activityId, cancellationToken);
+    var createdId = await HttpService.RegisterActivity(opts, activityId, cancellationToken);
 
-    ConsoleHelper.WriteSuccess("Activity successfully created.");
+    ConsoleHelper.WriteSuccess($"Activity successfully created. ID: {createdId}");
 
     return 0;
 }
