@@ -1,5 +1,6 @@
 using CommandLine;
 using Timetracker.Options;
+using Timetracker.Requests;
 using Timetracker.Services;
 using Timetracker.Utils;
 using Timetracker.Validators;
@@ -9,13 +10,14 @@ Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
 try
 {
-    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions, DeleteOptions>(args)
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions>(args)
         .MapResult(
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
             async (ActivityTypeOptions opts) => await ActivityTypeAction(opts, cts.Token),
             async (ListOptions opts) => await ListActions(opts, cts.Token),
             async (DeleteOptions opts) => await DeleteAction(opts, cts.Token),
+            async (UpdateOptions opts) => await UpdateAction(opts, cts.Token),
             errs => Task.FromResult(1)
         );
 }
@@ -273,6 +275,62 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     Console.WriteLine();
     ConsoleHelper.WriteSuccess($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
+
+    return 0;
+}
+
+static async Task<int> UpdateAction(UpdateOptions opts, CancellationToken cancellationToken)
+{
+    if (!ConfigService.ConfigExists())
+    {
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
+    }
+
+    var activities = ActivityService.GetActivities();
+    var validator = new UpdateValidator(activities.Select(x => x.Name.ToUpper()));
+    var result = validator.Validate(opts);
+
+    if (!result.IsValid)
+    {
+        foreach (var error in result.Errors)
+        {
+            ConsoleHelper.WriteError($"- {error.ErrorMessage}");
+        }
+
+        return 1;
+    }
+
+    var existing = await HttpService.GetWorkLog(opts.WorkLogId, cancellationToken);
+
+    var date = opts.ActivityDate != null
+        ? ValidationUtils.ResolveDate(opts.ActivityDate)
+        : existing.TimeStamp.Date;
+
+    var time = opts.ActivityStartHour != null
+        ? TimeSpan.Parse(opts.ActivityStartHour)
+        : existing.TimeStamp.TimeOfDay;
+
+    var activityTypeId = opts.ActivityType != null
+        ? ActivityService.GetActivityId(opts.ActivityType, activities)
+        : existing.ActivityType.Id;
+
+    var config = ConfigService.LoadConfig();
+
+    var updated = new TimetrackerWorklogRequest
+    {
+        TimeStamp = date.Add(time),
+        Length = opts.ActivityLength.HasValue ? (int)Math.Round(opts.ActivityLength.Value * 3600) : existing.Length,
+        BillableLength = null,
+        WorkItemId = opts.WorkItemId ?? existing.WorkItemId,
+        Comment = opts.ActivityComment ?? existing.Comment,
+        UserId = config.TimetrackerUserId,
+        ActivityTypeId = activityTypeId
+    };
+
+    await HttpService.UpdateWorkLog(opts.WorkLogId, updated, cancellationToken);
+
+    ConsoleHelper.WriteSuccess($"Time entry '{opts.WorkLogId}' updated successfully.");
 
     return 0;
 }
