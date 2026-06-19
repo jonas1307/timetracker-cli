@@ -137,9 +137,22 @@ static async Task<int> DeleteAction(DeleteOptions opts, CancellationToken cancel
         return 1;
     }
 
+    var ids = opts.WorkLogIds.ToList();
+
     if (!opts.Force)
     {
-        Console.Write($"Delete time entry '{opts.WorkLogId}'? [y/N] ");
+        if (ids.Count == 1)
+        {
+            Console.Write($"Delete time entry '{ids[0]}'? [y/N] ");
+        }
+        else
+        {
+            Console.WriteLine($"Delete {ids.Count} time entries?");
+            foreach (var id in ids)
+                Console.WriteLine($"  - {id}");
+            Console.Write("[y/N] ");
+        }
+
         var answer = Console.ReadLine();
         if (!string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase))
         {
@@ -148,9 +161,14 @@ static async Task<int> DeleteAction(DeleteOptions opts, CancellationToken cancel
         }
     }
 
-    await HttpService.DeleteWorkLog(opts.WorkLogId, cancellationToken);
+    foreach (var id in ids)
+    {
+        await HttpService.DeleteWorkLog(id, cancellationToken);
+        Console.WriteLine($"Deleted: {id}");
+    }
 
-    ConsoleHelper.WriteSuccess($"Time entry '{opts.WorkLogId}' deleted successfully.");
+    Console.WriteLine();
+    ConsoleHelper.WriteSuccess($"{ids.Count} {(ids.Count == 1 ? "entry" : "entries")} deleted successfully.");
 
     return 0;
 }

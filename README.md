@@ -212,19 +212,25 @@ timetracker copy -i <id> -d 2026/06/20
 
 ### delete
 
-Delete a time entry by its ID.
+Delete one or more time entries by ID.
 
 | Option | Short | Required | Description |
 |---|---|---|---|
-| `--id` | `-i` | yes | ID of the entry to delete |
+| `--id` | `-i` | yes | ID(s) to delete. Repeat the flag or separate with commas |
 | `--force` | | no | Skip the confirmation prompt |
 
 ```bash
-# Delete with confirmation prompt
+# Delete a single entry (with confirmation)
 timetracker delete -i <id>
 
-# Delete without confirmation
-timetracker delete -i <id> --force
+# Delete multiple entries
+timetracker delete -i <id1> -i <id2> -i <id3>
+
+# Delete multiple entries using comma separator
+timetracker delete -i <id1>,<id2>,<id3>
+
+# Skip confirmation
+timetracker delete -i <id1> -i <id2> --force
 ```
 
 ---
