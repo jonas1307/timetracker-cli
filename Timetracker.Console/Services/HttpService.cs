@@ -82,6 +82,37 @@ namespace Timetracker.Services
             throw new Exception("Could not retrieve the list of work logs.");
         }
 
+        public static async Task<WorkLog> GetWorkLog(string workLogId, CancellationToken cancellationToken = default)
+        {
+            var config = ConfigService.LoadConfig();
+            using var client = new RestClient(config.TimetrackerUrl);
+
+            var request = new RestRequest($"/api/rest/workLogs/{workLogId}?api-version={TIMETRACKER_API_VERSION}", Method.Get);
+            request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
+
+            var response = await client.ExecuteAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+                return JsonConvert.DeserializeObject<TimetrackerResponse<WorkLog>>(response.Content).Data;
+
+            throw new Exception($"Could not retrieve time entry '{workLogId}'. Status: {response.StatusCode}.");
+        }
+
+        public static async Task UpdateWorkLog(string workLogId, TimetrackerWorklogRequest worklog, CancellationToken cancellationToken = default)
+        {
+            var config = ConfigService.LoadConfig();
+            using var client = new RestClient(config.TimetrackerUrl);
+
+            var request = new RestRequest($"/api/rest/workLogs/{workLogId}?api-version={TIMETRACKER_API_VERSION}", Method.Put);
+            request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
+            request.AddJsonBody(worklog);
+
+            var response = await client.ExecuteAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Failed to update time entry. Status: {response.StatusCode}. Response: {response.Content}.");
+        }
+
         public static async Task DeleteWorkLog(string workLogId, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
