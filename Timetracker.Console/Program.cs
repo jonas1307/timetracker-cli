@@ -154,6 +154,21 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
     }
 
     var activityId = ActivityService.GetActivityId(opts.ActivityType, activities);
+    var resolvedDate = ValidationUtils.ResolveDate(opts.ActivityDate);
+
+    if (opts.DryRun)
+    {
+        Console.WriteLine("[Dry run] Entry that would be submitted:");
+        Console.WriteLine();
+        Console.WriteLine($"  Date:        {resolvedDate:yyyy/MM/dd} {opts.ActivityStartHour}");
+        Console.WriteLine($"  Work Item:   {opts.WorkItemId}");
+        Console.WriteLine($"  Duration:    {opts.ActivityLength}h ({(int)Math.Round(opts.ActivityLength * 3600)}s)");
+        Console.WriteLine($"  Type:        {opts.ActivityType}");
+        Console.WriteLine($"  Comment:     {(string.IsNullOrEmpty(opts.ActivityComment) ? "-" : opts.ActivityComment)}");
+        Console.WriteLine();
+        ConsoleHelper.WriteSuccess("Dry run complete. No entry was submitted.");
+        return 0;
+    }
 
     await HttpService.RegisterActivity(opts, activityId, cancellationToken);
 

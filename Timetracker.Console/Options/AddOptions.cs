@@ -22,5 +22,8 @@ public class AddOptions
 
     [Option('h', "hour", Required = false, HelpText = "Specify the start time of the activity in the format HH:MM (e.g., 09:00 or 21:00)", Default = "09:00")]
     public string ActivityStartHour { get; set; }
+
+    [Option('n', "dry-run", Required = false, HelpText = "Preview the entry that would be submitted without sending it to the server.")]
+    public bool DryRun { get; set; }
 }
 
