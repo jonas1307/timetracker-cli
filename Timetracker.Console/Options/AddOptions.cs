@@ -8,7 +8,7 @@ public class AddOptions
     [Option('d', "date", Required = true, HelpText = "Specify the date for the activity in the format YYYY/MM/DD (e.g., 2025/12/31).")]
     public string ActivityDate { get; set; }
 
-    [Option('w', "workitem", Required = true, HelpText = "Specify the Work Item ID associated with the activity.")]
+    [Option('w', "work-item", Required = true, HelpText = "Specify the Work Item ID associated with the activity.")]
     public int WorkItemId { get; set; }
 
     [Option('l', "length", Required = true, HelpText = "Specify the duration of the activity in hours (e.g., 0.5 for half an hour).")]

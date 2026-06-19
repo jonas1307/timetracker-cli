@@ -11,7 +11,7 @@ public class UpdateOptions
     [Option('d', "date", Required = false, HelpText = "New date in the format YYYY/MM/DD, 'today' or 'yesterday'.")]
     public string ActivityDate { get; set; }
 
-    [Option('w', "workitem", Required = false, HelpText = "New Work Item ID.")]
+    [Option('w', "work-item", Required = false, HelpText = "New Work Item ID.")]
     public int? WorkItemId { get; set; }
 
     [Option('l', "length", Required = false, HelpText = "New duration in hours (e.g., 0.5 for half an hour).")]
