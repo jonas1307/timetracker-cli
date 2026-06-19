@@ -137,6 +137,17 @@ static async Task<int> DeleteAction(DeleteOptions opts, CancellationToken cancel
         return 1;
     }
 
+    if (!opts.Force)
+    {
+        Console.Write($"Delete time entry '{opts.WorkLogId}'? [y/N] ");
+        var answer = Console.ReadLine();
+        if (!string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine("Cancelled.");
+            return 0;
+        }
+    }
+
     await HttpService.DeleteWorkLog(opts.WorkLogId, cancellationToken);
 
     ConsoleHelper.WriteSuccess($"Time entry '{opts.WorkLogId}' deleted successfully.");

@@ -217,9 +217,14 @@ Delete a time entry by its ID.
 | Option | Short | Required | Description |
 |---|---|---|---|
 | `--id` | `-i` | yes | ID of the entry to delete |
+| `--force` | | no | Skip the confirmation prompt |
 
 ```bash
+# Delete with confirmation prompt
 timetracker delete -i <id>
+
+# Delete without confirmation
+timetracker delete -i <id> --force
 ```
 
 ---
