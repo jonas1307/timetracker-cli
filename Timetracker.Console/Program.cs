@@ -187,7 +187,23 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     DateTime from, to;
 
-    if (!string.IsNullOrEmpty(opts.Month))
+    if (opts.Week && !string.IsNullOrEmpty(opts.Month))
+    {
+        ConsoleHelper.WriteError("--week cannot be used together with --month.");
+        return 1;
+    }
+
+    if (opts.Week)
+    {
+        if (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To))
+        {
+            ConsoleHelper.WriteError("--week cannot be used together with --from or --to.");
+            return 1;
+        }
+
+        (from, to) = ValidationUtils.ResolveCurrentWeek();
+    }
+    else if (!string.IsNullOrEmpty(opts.Month))
     {
         if (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To))
         {

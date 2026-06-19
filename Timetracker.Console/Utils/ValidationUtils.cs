@@ -33,6 +33,14 @@ public static class ValidationUtils
         return DateTime.Parse(input);
     }
 
+    public static (DateTime From, DateTime To) ResolveCurrentWeek()
+    {
+        var today = DateTime.Today;
+        var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+        var monday = today.AddDays(-diff);
+        return (monday, monday.AddDays(6));
+    }
+
     public static bool TryResolveMonth(string input, out DateTime firstDay, out DateTime lastDay)
     {
         firstDay = default;
