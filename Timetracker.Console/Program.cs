@@ -77,6 +77,8 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
             ? $"{config.TimetrackerBearerToken[..4]}{"*".PadRight(config.TimetrackerBearerToken.Length - 8, '*')}{config.TimetrackerBearerToken[^4..]}"
             : "****";
 
+        Console.WriteLine($"Logged in as: {config.DisplayName} ({config.Email}) · {config.AccountName}");
+        Console.WriteLine();
         Console.WriteLine($"URL:    {config.TimetrackerUrl}");
         Console.WriteLine($"Token:  {maskedToken}");
         Console.WriteLine($"UserId: {config.TimetrackerUserId}");
@@ -108,15 +110,21 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         return 1;
     }
 
-    Console.WriteLine("Obtaining User Id...");
+    Console.WriteLine("Obtaining user info...");
 
     var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken, cancellationToken);
 
-    Console.WriteLine("User ID obtained successfully.");
+    Console.WriteLine("User info obtained successfully.");
 
     Console.WriteLine("Creating config file...");
 
-    ConfigService.SaveConfig(opts, user.Data.User.Id);
+    ConfigService.SaveConfig(
+        opts,
+        user.Data.User.Id,
+        user.Data.User.DisplayName,
+        user.Data.User.Email,
+        user.Data.Account.Name
+    );
 
     Console.WriteLine("Config file created.");
 

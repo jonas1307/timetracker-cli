@@ -9,6 +9,9 @@ public record Config
     public string TimetrackerUrl { get; set; }
     public string TimetrackerBearerToken { get; set; }
     public string TimetrackerUserId { get; set; }
+    public string DisplayName { get; set; }
+    public string Email { get; set; }
+    public string AccountName { get; set; }
 }
 
 public static class ConfigService
@@ -54,22 +57,23 @@ public static class ConfigService
         return JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
     }
 
-    public static void SaveConfig(ConfigOptions opts, string userId)
+    public static void SaveConfig(ConfigOptions opts, string userId, string displayName, string email, string accountName)
     {
         var configPath = GetConfigPath();
         var folderPath = Path.GetDirectoryName(configPath);
 
         var config = new Config
         {
-            TimetrackerBearerToken = opts.TimetrackerBearerToken,
             TimetrackerUrl = opts.TimetrackerUrl,
-            TimetrackerUserId = userId
+            TimetrackerBearerToken = opts.TimetrackerBearerToken,
+            TimetrackerUserId = userId,
+            DisplayName = displayName,
+            Email = email,
+            AccountName = accountName
         };
 
         if (!Directory.Exists(folderPath))
-        {
             Directory.CreateDirectory(folderPath);
-        }
 
         File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
     }
