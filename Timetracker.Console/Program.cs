@@ -361,7 +361,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         {
             var dayHours = Math.Round(day.Sum(x => x.Length) / 3600m, 2);
             var count = day.Count();
-            Console.WriteLine($"  {day.Key:yyyy/MM/dd} | {dayHours,4}h | {count} {(count == 1 ? "entry" : "entries")}");
+            Console.WriteLine($"  {day.Key:yyyy/MM/dd} | {day.Key.DayOfWeek,9} | {dayHours,4}h | {count} {(count == 1 ? "entry" : "entries")}");
         }
     }
     else
@@ -373,9 +373,10 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         {
             var hours = Math.Round(log.Length / 3600m, 2);
             var type = log.ActivityType?.Name ?? "-";
-            var lastColumn = opts.ShowIds ? log.Id : (string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment);
+            var comment = string.IsNullOrEmpty(log.Comment) ? "-" : (log.Comment.Length > 30 ? log.Comment[..30] + "..." : log.Comment);
+            var lastColumn = opts.ShowIds ? log.Id : comment;
 
-            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {lastColumn}");
+            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.TimeStamp.DayOfWeek,9} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {lastColumn}");
         }
     }
 
