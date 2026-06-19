@@ -9,11 +9,12 @@ Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
 try
 {
-    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions>(args)
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions>(args)
         .MapResult(
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
             async (ActivityTypeOptions opts) => await ActivityTypeAction(opts, cts.Token),
+            async (ListOptions opts) => await ListActions(opts, cts.Token),
             errs => Task.FromResult(1)
         );
 }
@@ -121,6 +122,71 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
     await HttpService.RegisterActivity(opts, activityId, cancellationToken);
 
     ConsoleHelper.WriteSuccess("Activity successfully created.");
+
+    return 0;
+}
+
+static async Task<int> ListActions(ListOptions opts, CancellationToken cancellationToken)
+{
+    if (!ConfigService.ConfigExists())
+    {
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
+    }
+
+    var from = ValidationUtils.ResolveDate(opts.From);
+    var to = ValidationUtils.ResolveDate(opts.To);
+
+    if (from > to)
+    {
+        ConsoleHelper.WriteError("The 'from' date must be earlier than or equal to the 'to' date.");
+        return 1;
+    }
+
+    var result = await HttpService.ListWorkLogs(from, to, cancellationToken);
+    var workLogs = result.Data;
+
+    if (workLogs is null || workLogs.Count == 0)
+    {
+        Console.WriteLine("No time entries found for the specified period.");
+        return 0;
+    }
+
+    var totalHours = Math.Round(workLogs.Sum(x => x.Length) / 3600m, 2);
+
+    if (opts.Summary)
+    {
+        Console.WriteLine($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
+        Console.WriteLine();
+
+        var byDay = workLogs
+            .GroupBy(x => x.TimeStamp.Date)
+            .OrderBy(g => g.Key);
+
+        foreach (var day in byDay)
+        {
+            var dayHours = Math.Round(day.Sum(x => x.Length) / 3600m, 2);
+            var count = day.Count();
+            Console.WriteLine($"  {day.Key:yyyy/MM/dd} | {dayHours,4}h | {count} {(count == 1 ? "entry" : "entries")}");
+        }
+    }
+    else
+    {
+        Console.WriteLine($"Time entries from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
+        Console.WriteLine();
+
+        foreach (var log in workLogs.OrderBy(x => x.TimeStamp))
+        {
+            var hours = Math.Round(log.Length / 3600m, 2);
+            var type = log.ActivityType?.Name ?? "-";
+            var lastColumn = opts.ShowIds ? log.Id : (string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment);
+
+            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {lastColumn}");
+        }
+    }
+
+    Console.WriteLine();
+    ConsoleHelper.WriteSuccess($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
 }
