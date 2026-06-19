@@ -93,7 +93,7 @@ Create a new time entry.
 | `--type` | `-t` | yes | Activity type name (see `activities`) |
 | `--comment` | `-c` | no | Comment for the entry |
 | `--hour` | `-h` | no | Start time in `HH:MM` format (default: `09:00`) |
-| `--dry-run` | | no | Preview and validate the entry without submitting |
+| `--dry-run` | | no | Preview the entry locally without submitting |
 
 ```bash
 # Log 2 hours of development on today
@@ -213,10 +213,10 @@ Import multiple time entries from a JSON file. The file must be an array of work
 | Option | Short | Required | Description |
 |---|---|---|---|
 | `--file` | `-f` | yes | Path to the JSON file |
-| `--dry-run` | | no | Validate against the API without submitting |
+| `--dry-run` | | no | Preview entries locally without submitting |
 
 ```bash
-# Validate first
+# Preview what would be imported
 timetracker import --file worklogs.json --dry-run
 
 # Import
@@ -260,7 +260,7 @@ timetracker copy -i <id>
 # Export
 timetracker list --week --output json > worklogs.json
 
-# Edit worklogs.json as needed, then validate
+# Edit worklogs.json as needed, then preview
 timetracker import --file worklogs.json --dry-run
 
 # Import

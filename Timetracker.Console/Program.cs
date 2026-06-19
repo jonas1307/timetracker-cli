@@ -181,24 +181,7 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
         Console.WriteLine($"  Type:        {opts.ActivityType}");
         Console.WriteLine($"  Comment:     {(string.IsNullOrEmpty(opts.ActivityComment) ? "-" : opts.ActivityComment)}");
         Console.WriteLine();
-        Console.WriteLine("Validating against the API...");
-
-        var config = ConfigService.LoadConfig();
-        var worklog = new TimetrackerWorklogRequest
-        {
-            TimeStamp = resolvedDate.Add(TimeSpan.Parse(opts.ActivityStartHour)),
-            Length = (int)Math.Round(opts.ActivityLength * 3600),
-            BillableLength = null,
-            WorkItemId = opts.WorkItemId,
-            Comment = opts.ActivityComment,
-            UserId = config.TimetrackerUserId,
-            ActivityTypeId = activityId
-        };
-
-        await HttpService.ImportWorkLogs([worklog], validateOnly: true, cancellationToken);
-
-        Console.WriteLine();
-        ConsoleHelper.WriteSuccess("Dry run complete. Entry is valid. No entry was submitted.");
+        ConsoleHelper.WriteSuccess("Dry run complete. No entry was submitted.");
         return 0;
     }
 
@@ -460,15 +443,20 @@ static async Task<int> ImportAction(ImportOptions opts, CancellationToken cancel
 
     if (opts.DryRun)
     {
-        Console.WriteLine($"[Dry run] Validating {entries.Count} {(entries.Count == 1 ? "entry" : "entries")} against the API...");
-        await HttpService.ImportWorkLogs(entries, validateOnly: true, cancellationToken);
+        Console.WriteLine($"[Dry run] {entries.Count} {(entries.Count == 1 ? "entry" : "entries")} would be imported:");
         Console.WriteLine();
-        ConsoleHelper.WriteSuccess($"Dry run complete. All {entries.Count} {(entries.Count == 1 ? "entry is" : "entries are")} valid. No entries were submitted.");
+        foreach (var entry in entries.OrderBy(x => x.TimeStamp))
+        {
+            var hours = Math.Round(entry.Length / 3600m, 2);
+            Console.WriteLine($"  {entry.TimeStamp:yyyy/MM/dd HH:mm} | {entry.WorkItemId,-7} | {hours,4}h | {(string.IsNullOrEmpty(entry.Comment) ? "-" : entry.Comment)}");
+        }
+        Console.WriteLine();
+        ConsoleHelper.WriteSuccess($"Dry run complete. No entries were submitted.");
         return 0;
     }
 
     Console.WriteLine($"Importing {entries.Count} {(entries.Count == 1 ? "entry" : "entries")}...");
-    var created = await HttpService.ImportWorkLogs(entries, validateOnly: false, cancellationToken);
+    var created = await HttpService.ImportWorkLogs(entries, cancellationToken);
     Console.WriteLine();
     ConsoleHelper.WriteSuccess($"Successfully imported {created.Count} {(created.Count == 1 ? "entry" : "entries")}.");
 
