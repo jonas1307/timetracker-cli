@@ -1,5 +1,8 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using System.Security.Cryptography;
+using System.Text;
 using Timetracker.Options;
 
 namespace Timetracker.Services;
@@ -12,6 +15,7 @@ public record Config
     public string DisplayName { get; set; }
     public string Email { get; set; }
     public string AccountName { get; set; }
+    public bool TokenEncrypted { get; set; }
 }
 
 public static class ConfigService
@@ -21,16 +25,9 @@ public static class ConfigService
 
     private static string GetConfigPath()
     {
-        string folderPath;
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), APPLICATION_NAME);
-        }
-        else
-        {
-            folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", APPLICATION_NAME);
-        }
+        var folderPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), APPLICATION_NAME)
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", APPLICATION_NAME);
 
         return Path.Combine(folderPath, JSON_FILE_NAME);
     }
@@ -40,7 +37,7 @@ public static class ConfigService
     public static void DeleteConfig()
     {
         var configPath = GetConfigPath();
-        
+
         if (File.Exists(configPath))
             File.Delete(configPath);
     }
@@ -50,11 +47,14 @@ public static class ConfigService
         var configPath = GetConfigPath();
 
         if (!File.Exists(configPath))
-        {
             throw new FileNotFoundException($"{JSON_FILE_NAME} does not exist. Make sure you already executed the config method.");
-        }
 
-        return JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+        var config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+
+        if (config.TokenEncrypted && OperatingSystem.IsWindows())
+            config = config with { TimetrackerBearerToken = DecryptToken(config.TimetrackerBearerToken) };
+
+        return config;
     }
 
     public static void SaveConfig(ConfigOptions opts, string userId, string displayName, string email, string accountName)
@@ -62,19 +62,52 @@ public static class ConfigService
         var configPath = GetConfigPath();
         var folderPath = Path.GetDirectoryName(configPath);
 
-        var config = new Config
-        {
-            TimetrackerUrl = opts.TimetrackerUrl,
-            TimetrackerBearerToken = opts.TimetrackerBearerToken,
-            TimetrackerUserId = userId,
-            DisplayName = displayName,
-            Email = email,
-            AccountName = accountName
-        };
-
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 
+        string token = opts.TimetrackerBearerToken;
+        bool tokenEncrypted = false;
+
+        if (OperatingSystem.IsWindows())
+        {
+            token = EncryptToken(token);
+            tokenEncrypted = true;
+        }
+
+        var config = new Config
+        {
+            TimetrackerUrl = opts.TimetrackerUrl,
+            TimetrackerBearerToken = token,
+            TimetrackerUserId = userId,
+            DisplayName = displayName,
+            Email = email,
+            AccountName = accountName,
+            TokenEncrypted = tokenEncrypted
+        };
+
         File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
+
+        if (!OperatingSystem.IsWindows())
+            File.SetUnixFileMode(configPath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string EncryptToken(string token)
+    {
+        var bytes = ProtectedData.Protect(
+            Encoding.UTF8.GetBytes(token),
+            null,
+            DataProtectionScope.CurrentUser);
+        return Convert.ToBase64String(bytes);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string DecryptToken(string encrypted)
+    {
+        var bytes = ProtectedData.Unprotect(
+            Convert.FromBase64String(encrypted),
+            null,
+            DataProtectionScope.CurrentUser);
+        return Encoding.UTF8.GetString(bytes);
     }
 }
