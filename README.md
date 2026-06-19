@@ -118,7 +118,7 @@ List time entries for a period.
 | `--to` | `-t` | no | End date (default: today) |
 | `--month` | `-m` | no | Month in `YYYY/MM` format |
 | `--work-item` | `-w` | no | Filter by Work Item ID |
-| `--output` | `-o` | no | Output format: `json` (batch-upload compatible) |
+| `--output` | `-o` | no | Output format: `json` (batch-upload compatible) or `csv` |
 | `--today` | | no | Shortcut for today's entries |
 | `--yesterday` | | no | Shortcut for yesterday's entries |
 | `--week` | | no | Entries for the current week (Mon–Sun) |
@@ -160,6 +160,9 @@ timetracker list --week --work-item 12345 --ids
 
 # Export week as JSON for batch upload
 timetracker list --week --output json > worklogs.json
+
+# Export month as CSV
+timetracker list --this-month --output csv > worklogs.csv
 ```
 
 ---

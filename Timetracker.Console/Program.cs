@@ -287,9 +287,25 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
             UserId = config.TimetrackerUserId,
             ActivityTypeId = log.ActivityType?.Id
         });
-        
+
         Console.WriteLine(JsonConvert.SerializeObject(batch, Formatting.Indented));
-        
+
+        return 0;
+    }
+
+    if (string.Equals(opts.Output, "csv", StringComparison.OrdinalIgnoreCase))
+    {
+        Console.WriteLine("id,date,time,work_item_id,hours,activity_type,comment");
+
+        foreach (var log in workLogs.OrderBy(x => x.TimeStamp))
+        {
+            var hours = Math.Round(log.Length / 3600m, 2);
+            var type = log.ActivityType?.Name ?? string.Empty;
+            var comment = log.Comment ?? string.Empty;
+
+            Console.WriteLine($"{log.Id},{log.TimeStamp:yyyy/MM/dd},{log.TimeStamp:HH:mm},{log.WorkItemId},{hours},{EscapeCsv(type)},{EscapeCsv(comment)}");
+        }
+
         return 0;
     }
 
@@ -477,4 +493,11 @@ static async Task<int> ImportAction(ImportOptions opts, CancellationToken cancel
     ConsoleHelper.WriteSuccess($"Successfully imported {created.Count} {(created.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
+}
+
+static string EscapeCsv(string value)
+{
+    if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+        return $"\"{value.Replace("\"", "\"\"")}\"";
+    return value;
 }
