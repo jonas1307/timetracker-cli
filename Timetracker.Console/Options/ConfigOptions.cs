@@ -11,9 +11,9 @@ public class ConfigOptions
     [Option('t', "token", Required = false, HelpText = "Provide the Bearer Token required for authentication with your Timetracker instance.")]
     public string TimetrackerBearerToken { get; set; }
 
-    [Option('s', "show", Required = false, HelpText = "Display the current configuration, masking the bearer token.")]
+    [Option("show", Required = false, HelpText = "Display the current configuration, masking the bearer token.")]
     public bool Show { get; set; }
 
-    [Option('r', "reset", Required = false, HelpText = "Remove all local configuration and activity cache files.")]
+    [Option("reset", Required = false, HelpText = "Remove all local configuration and activity cache files.")]
     public bool Reset { get; set; }
 }
