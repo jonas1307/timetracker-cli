@@ -11,7 +11,7 @@ Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
 try
 {
-    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions, CopyOptions>(args)
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions, CopyOptions, ImportOptions>(args)
         .MapResult(
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
@@ -20,6 +20,7 @@ try
             async (DeleteOptions opts) => await DeleteAction(opts, cts.Token),
             async (UpdateOptions opts) => await UpdateAction(opts, cts.Token),
             async (CopyOptions opts) => await CopyAction(opts, cts.Token),
+            async (ImportOptions opts) => await ImportAction(opts, cts.Token),
             errs => Task.FromResult(1)
         );
 }
@@ -180,7 +181,24 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
         Console.WriteLine($"  Type:        {opts.ActivityType}");
         Console.WriteLine($"  Comment:     {(string.IsNullOrEmpty(opts.ActivityComment) ? "-" : opts.ActivityComment)}");
         Console.WriteLine();
-        ConsoleHelper.WriteSuccess("Dry run complete. No entry was submitted.");
+        Console.WriteLine("Validating against the API...");
+
+        var config = ConfigService.LoadConfig();
+        var worklog = new TimetrackerWorklogRequest
+        {
+            TimeStamp = resolvedDate.Add(TimeSpan.Parse(opts.ActivityStartHour)),
+            Length = (int)Math.Round(opts.ActivityLength * 3600),
+            BillableLength = null,
+            WorkItemId = opts.WorkItemId,
+            Comment = opts.ActivityComment,
+            UserId = config.TimetrackerUserId,
+            ActivityTypeId = activityId
+        };
+
+        await HttpService.ImportWorkLogs([worklog], validateOnly: true, cancellationToken);
+
+        Console.WriteLine();
+        ConsoleHelper.WriteSuccess("Dry run complete. Entry is valid. No entry was submitted.");
         return 0;
     }
 
@@ -398,6 +416,56 @@ static async Task<int> CopyAction(CopyOptions opts, CancellationToken cancellati
     var createdId = await HttpService.PostWorkLog(copy, cancellationToken);
 
     ConsoleHelper.WriteSuccess($"Time entry copied successfully. New ID: {createdId}");
+
+    return 0;
+}
+
+static async Task<int> ImportAction(ImportOptions opts, CancellationToken cancellationToken)
+{
+    if (!ConfigService.ConfigExists())
+    {
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
+    }
+
+    if (!File.Exists(opts.FilePath))
+    {
+        ConsoleHelper.WriteError($"File not found: {opts.FilePath}");
+        return 1;
+    }
+
+    List<TimetrackerWorklogRequest> entries;
+
+    try
+    {
+        var json = await File.ReadAllTextAsync(opts.FilePath, cancellationToken);
+        entries = JsonConvert.DeserializeObject<List<TimetrackerWorklogRequest>>(json);
+    }
+    catch (JsonException ex)
+    {
+        ConsoleHelper.WriteError($"Invalid JSON file: {ex.Message}");
+        return 1;
+    }
+
+    if (entries is null || entries.Count == 0)
+    {
+        ConsoleHelper.WriteError("The file contains no entries to import.");
+        return 1;
+    }
+
+    if (opts.DryRun)
+    {
+        Console.WriteLine($"[Dry run] Validating {entries.Count} {(entries.Count == 1 ? "entry" : "entries")} against the API...");
+        await HttpService.ImportWorkLogs(entries, validateOnly: true, cancellationToken);
+        Console.WriteLine();
+        ConsoleHelper.WriteSuccess($"Dry run complete. All {entries.Count} {(entries.Count == 1 ? "entry is" : "entries are")} valid. No entries were submitted.");
+        return 0;
+    }
+
+    Console.WriteLine($"Importing {entries.Count} {(entries.Count == 1 ? "entry" : "entries")}...");
+    var created = await HttpService.ImportWorkLogs(entries, validateOnly: false, cancellationToken);
+    Console.WriteLine();
+    ConsoleHelper.WriteSuccess($"Successfully imported {created.Count} {(created.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
 }

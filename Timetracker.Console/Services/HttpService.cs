@@ -29,6 +29,27 @@ namespace Timetracker.Services
             return await PostWorkLog(worklog, cancellationToken);
         }
 
+        public static async Task<List<WorkLog>> ImportWorkLogs(IEnumerable<TimetrackerWorklogRequest> worklogs, bool validateOnly = false, CancellationToken cancellationToken = default)
+        {
+            var config = ConfigService.LoadConfig();
+            using var client = new RestClient(config.TimetrackerUrl);
+
+            var request = new RestRequest($"/api/rest/workLogs/batch?api-version={TIMETRACKER_API_VERSION}", Method.Post);
+            request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
+
+            if (validateOnly)
+                request.AddQueryParameter("_validateOnly", "true");
+
+            request.AddJsonBody(worklogs);
+
+            var response = await client.ExecuteAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Failed to import entries. Status: {response.StatusCode}. Response: {response.Content}.");
+
+            return JsonConvert.DeserializeObject<TimetrackerResponse<List<WorkLog>>>(response.Content)?.Data ?? [];
+        }
+
         public static async Task<string> PostWorkLog(TimetrackerWorklogRequest worklog, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
