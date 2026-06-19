@@ -14,7 +14,7 @@ try
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
             async (ActivityTypeOptions opts) => await ActivityTypeAction(opts, cts.Token),
-            async (ListOptions opts) => await ListActions(opts, cts.Token),      
+            async (ListOptions opts) => await ListActions(opts, cts.Token),
             async (DeleteOptions opts) => await DeleteAction(opts, cts.Token),
             errs => Task.FromResult(1)
         );
@@ -59,6 +59,26 @@ async Task<int> ActivityTypeAction(ActivityTypeOptions opts, CancellationToken c
 
 async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationToken)
 {
+    if (opts.Show)
+    {
+        if (!ConfigService.ConfigExists())
+        {
+            ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+            return 1;
+        }
+
+        var config = ConfigService.LoadConfig();
+        var maskedToken = config.TimetrackerBearerToken.Length > 8
+            ? $"{config.TimetrackerBearerToken[..4]}{"*".PadRight(config.TimetrackerBearerToken.Length - 8, '*')}{config.TimetrackerBearerToken[^4..]}"
+            : "****";
+
+        Console.WriteLine($"URL:    {config.TimetrackerUrl}");
+        Console.WriteLine($"Token:  {maskedToken}");
+        Console.WriteLine($"UserId: {config.TimetrackerUserId}");
+
+        return 0;
+    }
+
     var validator = new ConfigValidator();
 
     var result = validator.Validate(opts);
