@@ -120,19 +120,27 @@ List time entries for a period.
 | `--work-item` | `-w` | no | Filter by Work Item ID |
 | `--output` | `-o` | no | Output format: `json` (batch-upload compatible) |
 | `--today` | | no | Shortcut for today's entries |
+| `--yesterday` | | no | Shortcut for yesterday's entries |
 | `--week` | | no | Entries for the current week (Mon–Sun) |
+| `--last-week` | | no | Entries for the previous week (Mon–Sun) |
 | `--summary` | | no | Daily summary instead of individual entries |
 | `--ids` | | no | Show entry IDs instead of comments |
 
-`--today`, `--week`, and `--month` are mutually exclusive.
-`--month` and `--week` cannot be combined with `--from` or `--to`.
+`--today`, `--yesterday`, `--week`, `--last-week`, and `--month` are mutually exclusive.
+`--today`, `--yesterday`, `--week`, and `--last-week` cannot be combined with `--from` or `--to`.
 
 ```bash
 # Today's entries
 timetracker list --today
 
+# Yesterday's entries
+timetracker list --yesterday
+
 # Current week
 timetracker list --week
+
+# Previous week
+timetracker list --last-week
 
 # Specific date range
 timetracker list -f 2026/06/01 -t 2026/06/30

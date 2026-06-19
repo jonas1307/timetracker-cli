@@ -41,6 +41,13 @@ public static class ValidationUtils
         return (monday, monday.AddDays(6));
     }
 
+    public static (DateTime From, DateTime To) ResolveLastWeek()
+    {
+        var (thisMonday, _) = ResolveCurrentWeek();
+        var lastMonday = thisMonday.AddDays(-7);
+        return (lastMonday, lastMonday.AddDays(6));
+    }
+
     public static bool TryResolveMonth(string input, out DateTime firstDay, out DateTime lastDay)
     {
         firstDay = default;

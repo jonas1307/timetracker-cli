@@ -202,16 +202,16 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     DateTime from, to;
 
-    var periodFlags = new[] { opts.Today, opts.Week, !string.IsNullOrEmpty(opts.Month) }.Count(x => x);
+    var periodFlags = new[] { opts.Today, opts.Yesterday, opts.Week, opts.LastWeek, !string.IsNullOrEmpty(opts.Month) }.Count(x => x);
     if (periodFlags > 1)
     {
-        ConsoleHelper.WriteError("--today, --week and --month are mutually exclusive.");
+        ConsoleHelper.WriteError("--today, --yesterday, --week, --last-week and --month are mutually exclusive.");
         return 1;
     }
 
-    if ((opts.Today || opts.Week) && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
+    if ((opts.Today || opts.Yesterday || opts.Week || opts.LastWeek) && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
     {
-        ConsoleHelper.WriteError("--today and --week cannot be used together with --from or --to.");
+        ConsoleHelper.WriteError("--today, --yesterday, --week and --last-week cannot be used together with --from or --to.");
         return 1;
     }
 
@@ -219,9 +219,17 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     {
         from = to = DateTime.Today;
     }
+    else if (opts.Yesterday)
+    {
+        from = to = DateTime.Today.AddDays(-1);
+    }
     else if (opts.Week)
     {
         (from, to) = ValidationUtils.ResolveCurrentWeek();
+    }
+    else if (opts.LastWeek)
+    {
+        (from, to) = ValidationUtils.ResolveLastWeek();
     }
     else if (!string.IsNullOrEmpty(opts.Month))
     {

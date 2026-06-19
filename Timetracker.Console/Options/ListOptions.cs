@@ -26,9 +26,15 @@ public class ListOptions
     [Option("ids", Required = false, HelpText = "Show entry IDs instead of comments. Useful for identifying entries to delete.")]
     public bool ShowIds { get; set; }
 
-    [Option("today", Required = false, HelpText = "Show entries for today. Cannot be used with --from, --to, --week or --month.")]
+    [Option("today", Required = false, HelpText = "Show entries for today. Cannot be used with --from, --to, --week, --yesterday, --last-week or --month.")]
     public bool Today { get; set; }
+
+    [Option("yesterday", Required = false, HelpText = "Show entries for yesterday. Cannot be used with --from, --to, --today, --week, --last-week or --month.")]
+    public bool Yesterday { get; set; }
 
     [Option("week", Required = false, HelpText = "Show entries for the current week (Monday to Sunday). Cannot be used with --from, --to or --month.")]
     public bool Week { get; set; }
+
+    [Option("last-week", Required = false, HelpText = "Show entries for the previous week (Monday to Sunday). Cannot be used with --from, --to or --month.")]
+    public bool LastWeek { get; set; }
 }
