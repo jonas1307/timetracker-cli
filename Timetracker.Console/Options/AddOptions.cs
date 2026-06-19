@@ -14,7 +14,7 @@ public class AddOptions
     [Option('l', "length", Required = true, HelpText = "Specify the duration of the activity in hours (e.g., 0.5 for half an hour).")]
     public decimal ActivityLength { get; set; }
 
-    [Option('t', "type", Required = true, HelpText = "Specify the type of activity. Use the 'activity-type' command to list available types.")]
+    [Option('t', "type", Required = true, HelpText = "Specify the type of activity. Use the 'activities' command to list available types.")]
     public string ActivityType { get; set; }
 
     [Option('c', "comment", Required = false, HelpText = "Provide a comment for the activity.")]

@@ -17,7 +17,7 @@ public class UpdateOptions
     [Option('l', "length", Required = false, HelpText = "New duration in hours (e.g., 0.5 for half an hour).")]
     public decimal? ActivityLength { get; set; }
 
-    [Option('t', "type", Required = false, HelpText = "New activity type. Use the 'activity-type' command to list available types.")]
+    [Option('t', "type", Required = false, HelpText = "New activity type. Use the 'activities' command to list available types.")]
     public string ActivityType { get; set; }
 
     [Option('c', "comment", Required = false, HelpText = "New comment.")]

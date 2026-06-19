@@ -38,7 +38,7 @@ public class UpdateValidator : AbstractValidator<UpdateOptions>
         {
             RuleFor(x => x.ActivityType)
                 .Must(t => ValidationUtils.ValidType(activityNames, t))
-                .WithMessage("Activity type is invalid. Use the 'activity-type' command to list allowed values.");
+                .WithMessage("Activity type is invalid. Use the 'activities' command to list allowed values.");
         });
 
         When(x => !string.IsNullOrEmpty(x.ActivityComment), () =>

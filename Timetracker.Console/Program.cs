@@ -11,11 +11,11 @@ Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
 try
 {
-    return await Parser.Default.ParseArguments<ConfigOptions, ActivityTypeOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions, CopyOptions, ImportOptions>(args)
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivitiesOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions, CopyOptions, ImportOptions>(args)
         .MapResult(
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
-            async (ActivityTypeOptions opts) => await ActivityTypeAction(opts, cts.Token),
+            async (ActivitiesOptions opts) => await ActivitiesAction(opts, cts.Token),
             async (ListOptions opts) => await ListActions(opts, cts.Token),
             async (DeleteOptions opts) => await DeleteAction(opts, cts.Token),
             async (UpdateOptions opts) => await UpdateAction(opts, cts.Token),
@@ -35,7 +35,7 @@ catch (Exception ex)
     return 1;
 }
 
-async Task<int> ActivityTypeAction(ActivityTypeOptions opts, CancellationToken cancellationToken)
+async Task<int> ActivitiesAction(ActivitiesOptions opts, CancellationToken cancellationToken)
 {
     if (!ConfigService.ConfigExists())
     {

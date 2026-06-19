@@ -23,7 +23,7 @@ public class AddValidator : AbstractValidator<AddOptions>
             .GreaterThan(0).WithMessage("Activity length must be greater than 0.");
 
         RuleFor(x => x.ActivityType)
-            .Must((x, url) => ValidationUtils.ValidType(_activities, url)).WithMessage("Activity type is invalid. Use the 'activity-type' command to list allowed values.");
+            .Must((x, url) => ValidationUtils.ValidType(_activities, url)).WithMessage("Activity type is invalid. Use the 'activities' command to list allowed values.");
 
         RuleFor(x => x.ActivityComment)
             .MinimumLength(3).When(x => !string.IsNullOrEmpty(x.ActivityComment)).WithMessage("Activity comments must be at least 3 characters long.");

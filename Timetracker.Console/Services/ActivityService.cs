@@ -47,7 +47,7 @@ public static class ActivityService
         var found = activities.FirstOrDefault(x => x.Name.Equals(activity, StringComparison.CurrentCultureIgnoreCase));
 
         if (found is null)
-            throw new InvalidOperationException($"Activity type '{activity}' not found. Run 'activity-type --sync' to refresh the list.");
+            throw new InvalidOperationException($"Activity type '{activity}' not found. Run 'activities --sync' to refresh the list.");
 
         return found.Id;
     }
