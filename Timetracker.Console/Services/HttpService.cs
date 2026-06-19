@@ -107,7 +107,7 @@ namespace Timetracker.Services
             var config = ConfigService.LoadConfig();
             using var client = new RestClient(config.TimetrackerUrl);
 
-            var request = new RestRequest($"/api/rest/workLogs/{workLogId}?api-version={TIMETRACKER_API_VERSION}", Method.Put);
+            var request = new RestRequest($"/api/rest/workLogs/{workLogId}?api-version={TIMETRACKER_API_VERSION}", Method.Patch);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
             request.AddJsonBody(worklog);
 
