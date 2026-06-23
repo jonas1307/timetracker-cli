@@ -588,7 +588,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
         }
 
         var choices = logs
-            .Select(l => $"{l.TimeStamp:yyyy/MM/dd HH:mm}  #{l.WorkItemId,-7}  {Math.Round(l.Length / 3600m, 2),4}h  {l.ActivityType?.Name ?? "-",-18}  {Truncate(l.Comment ?? "-", 35)}")
+            .Select(l => Markup.Escape($"{l.TimeStamp:yyyy/MM/dd HH:mm}  #{l.WorkItemId,-7}  {Math.Round(l.Length / 3600m, 2),4}h  {l.ActivityType?.Name ?? "-",-18}  {Truncate(l.Comment ?? "-", 35)}"))
             .ToList();
         choices.Add("── Exit ──");
 
@@ -605,7 +605,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
 
         var action = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
-                .Title($"[bold]{selected.Trim()}[/]")
+                .Title($"[bold]{Markup.Escape(selected.Trim())}[/]")
                 .AddChoices("Edit", "Delete", "Back"));
 
         if (action == "Back")
@@ -623,26 +623,40 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
 
         // Edit
         var dateStr = AnsiConsole.Prompt(
-            new TextPrompt<string>("Date [grey](YYYY/MM/DD)[/]:")
+            new TextPrompt<string>("Date (YYYY/MM/DD):")
                 .DefaultValue(log.TimeStamp.ToString("yyyy/MM/dd")));
 
         var hourStr = AnsiConsole.Prompt(
-            new TextPrompt<string>("Start hour [grey](HH:MM)[/]:")
+            new TextPrompt<string>("Start hour (HH:MM):")
                 .DefaultValue(log.TimeStamp.ToString("HH:mm")));
 
         var workItemId = AnsiConsole.Prompt(
             new TextPrompt<int>("Work Item ID:")
                 .DefaultValue(log.WorkItemId));
 
-        var hours = AnsiConsole.Prompt(
-            new TextPrompt<decimal>("Duration [grey](hours)[/]:")
-                .DefaultValue(Math.Round(log.Length / 3600m, 2)));
+        var hoursDefault = Math.Round(log.Length / 3600m, 2).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var hoursStr = AnsiConsole.Prompt(
+            new TextPrompt<string>("Duration in hours (e.g. 1 or 1.5):")
+                .DefaultValue(hoursDefault)
+                .Validate(v => decimal.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _)
+                    ? ValidationResult.Success()
+                    : ValidationResult.Error("Enter a valid number, e.g. 1 or 1.5")));
+        var hours = decimal.Parse(hoursStr, System.Globalization.CultureInfo.InvariantCulture);
 
-        var activityName = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("Activity type:")
-                .AddChoices(activities.Select(a => a.Name))
-                .MoreChoicesText("[grey](scroll for more)[/]"));
+        Activity activity;
+        var currentActivityName = log.ActivityType?.Name ?? "none";
+        if (log.ActivityType == null || AnsiConsole.Confirm($"Change activity type? (current: {Markup.Escape(currentActivityName)})", defaultValue: false))
+        {
+            activity = AnsiConsole.Prompt(
+                new SelectionPrompt<Activity>()
+                    .Title("Activity type:")
+                    .UseConverter(a => Markup.Escape(a.Name))
+                    .AddChoices(activities));
+        }
+        else
+        {
+            activity = activities.FirstOrDefault(a => a.Id == log.ActivityType.Id) ?? activities.First();
+        }
 
         var comment = AnsiConsole.Prompt(
             new TextPrompt<string>("Comment:")
@@ -669,7 +683,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
             WorkItemId = workItemId,
             Comment = comment,
             UserId = config.TimetrackerUserId,
-            ActivityTypeId = ActivityService.GetActivityId(activityName, activities)
+            ActivityTypeId = activity.Id
         };
 
         await HttpService.UpdateWorkLog(log.Id, updated, ct);
