@@ -1,5 +1,6 @@
 using CommandLine;
 using Newtonsoft.Json;
+using Spectre.Console;
 using Timetracker.Options;
 using Timetracker.Requests;
 using Timetracker.Services;
@@ -11,7 +12,7 @@ Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
 try
 {
-    return await Parser.Default.ParseArguments<ConfigOptions, ActivitiesOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions, CopyOptions, ImportOptions>(args)
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivitiesOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions, CopyOptions, ImportOptions, InteractiveOptions>(args)
         .MapResult(
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
@@ -21,6 +22,7 @@ try
             async (UpdateOptions opts) => await UpdateAction(opts, cts.Token),
             async (CopyOptions opts) => await CopyAction(opts, cts.Token),
             async (ImportOptions opts) => await ImportAction(opts, cts.Token),
+            async (InteractiveOptions opts) => await InteractiveAction(opts, cts.Token),
             errs => Task.FromResult(1)
         );
 }
@@ -539,3 +541,141 @@ static string EscapeCsv(string value)
         return $"\"{value.Replace("\"", "\"\"")}\"";
     return value;
 }
+
+static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationToken ct)
+{
+    if (!ConfigService.ConfigExists())
+    {
+        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        return 1;
+    }
+
+    DateTime from, to;
+
+    if (opts.Yesterday)
+        from = to = DateTime.Today.AddDays(-1);
+    else if (opts.Week)
+        (from, to) = ValidationUtils.ResolveCurrentWeek();
+    else if (opts.LastWeek)
+        (from, to) = ValidationUtils.ResolveLastWeek();
+    else if (opts.Month)
+        (from, to) = ValidationUtils.ResolveCurrentMonth();
+    else if (opts.LastMonth)
+        (from, to) = ValidationUtils.ResolveLastMonth();
+    else if (!string.IsNullOrEmpty(opts.Period))
+    {
+        if (!ValidationUtils.TryResolveMonth(opts.Period, out from, out to))
+        {
+            ConsoleHelper.WriteError("Invalid period format. Use YYYY/MM (e.g., 2026/06).");
+            return 1;
+        }
+    }
+    else
+        from = to = DateTime.Today;
+
+    var config = ConfigService.LoadConfig();
+    var activities = ActivityService.GetActivities();
+
+    while (true)
+    {
+        var response = await HttpService.ListWorkLogs(from, to, opts.WorkItemId, ct);
+        var logs = response.Data?.OrderBy(x => x.TimeStamp).ToList() ?? [];
+
+        if (logs.Count == 0)
+        {
+            AnsiConsole.MarkupLine("[yellow]No entries found for the selected period.[/]");
+            return 0;
+        }
+
+        var choices = logs
+            .Select(l => $"{l.TimeStamp:yyyy/MM/dd HH:mm}  #{l.WorkItemId,-7}  {Math.Round(l.Length / 3600m, 2),4}h  {l.ActivityType?.Name ?? "-",-18}  {Truncate(l.Comment ?? "-", 35)}")
+            .ToList();
+        choices.Add("── Exit ──");
+
+        var selected = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title($"[bold]Entries from [green]{from:yyyy/MM/dd}[/] to [green]{to:yyyy/MM/dd}[/][/] — use arrows to navigate, Enter to select:")
+                .PageSize(15)
+                .AddChoices(choices));
+
+        if (selected == "── Exit ──")
+            return 0;
+
+        var log = logs[choices.IndexOf(selected)];
+
+        var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title($"[bold]{selected.Trim()}[/]")
+                .AddChoices("Edit", "Delete", "Back"));
+
+        if (action == "Back")
+            continue;
+
+        if (action == "Delete")
+        {
+            var confirmed = AnsiConsole.Confirm($"Delete entry [red]{log.Id}[/]?", defaultValue: false);
+            if (!confirmed) continue;
+
+            await HttpService.DeleteWorkLog(log.Id, ct);
+            AnsiConsole.MarkupLine("[green]Entry deleted.[/]");
+            continue;
+        }
+
+        // Edit
+        var dateStr = AnsiConsole.Prompt(
+            new TextPrompt<string>("Date [grey](YYYY/MM/DD)[/]:")
+                .DefaultValue(log.TimeStamp.ToString("yyyy/MM/dd")));
+
+        var hourStr = AnsiConsole.Prompt(
+            new TextPrompt<string>("Start hour [grey](HH:MM)[/]:")
+                .DefaultValue(log.TimeStamp.ToString("HH:mm")));
+
+        var workItemId = AnsiConsole.Prompt(
+            new TextPrompt<int>("Work Item ID:")
+                .DefaultValue(log.WorkItemId));
+
+        var hours = AnsiConsole.Prompt(
+            new TextPrompt<decimal>("Duration [grey](hours)[/]:")
+                .DefaultValue(Math.Round(log.Length / 3600m, 2)));
+
+        var activityName = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Activity type:")
+                .AddChoices(activities.Select(a => a.Name))
+                .MoreChoicesText("[grey](scroll for more)[/]"));
+
+        var comment = AnsiConsole.Prompt(
+            new TextPrompt<string>("Comment:")
+                .AllowEmpty()
+                .DefaultValue(log.Comment ?? string.Empty));
+
+        if (!DateTime.TryParse(dateStr, out var date))
+        {
+            ConsoleHelper.WriteError("Invalid date.");
+            continue;
+        }
+
+        if (!TimeSpan.TryParse(hourStr, out var time))
+        {
+            ConsoleHelper.WriteError("Invalid start hour.");
+            continue;
+        }
+
+        var updated = new TimetrackerWorklogRequest
+        {
+            TimeStamp = date.Add(time),
+            Length = (int)Math.Round(hours * 3600),
+            BillableLength = null,
+            WorkItemId = workItemId,
+            Comment = comment,
+            UserId = config.TimetrackerUserId,
+            ActivityTypeId = ActivityService.GetActivityId(activityName, activities)
+        };
+
+        await HttpService.UpdateWorkLog(log.Id, updated, ct);
+        AnsiConsole.MarkupLine("[green]Entry updated.[/]");
+    }
+}
+
+static string Truncate(string value, int max) =>
+    value.Length > max ? value[..(max - 1)] + "…" : value;
