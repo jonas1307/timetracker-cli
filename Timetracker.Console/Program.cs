@@ -665,10 +665,81 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
         var action = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title($"[bold]{Markup.Escape(selected.Trim())}[/]")
-                .AddChoices("Edit", "Delete", "Back"));
+                .AddChoices("Edit", "Copy", "Delete", "Back"));
 
         if (action == "Back")
             continue;
+
+        if (action == "Copy")
+        {
+            var copyDateStr = AnsiConsole.Prompt(
+                new TextPrompt<string>("Date (YYYY/MM/DD):")
+                    .DefaultValue(DateTime.Today.ToString("yyyy/MM/dd")));
+
+            var copyHourStr = AnsiConsole.Prompt(
+                new TextPrompt<string>("Start hour (HH:MM):")
+                    .DefaultValue(log.TimeStamp.ToString("HH:mm")));
+
+            var copyWorkItemId = AnsiConsole.Prompt(
+                new TextPrompt<int>("Work Item ID:")
+                    .DefaultValue(log.WorkItemId));
+
+            var copyHoursDefault = Math.Round(log.Length / 3600m, 2).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var copyHoursStr = AnsiConsole.Prompt(
+                new TextPrompt<string>("Duration in hours (e.g. 1 or 1.5):")
+                    .DefaultValue(copyHoursDefault)
+                    .Validate(v => decimal.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _)
+                        ? ValidationResult.Success()
+                        : ValidationResult.Error("Enter a valid number, e.g. 1 or 1.5")));
+            var copyHours = decimal.Parse(copyHoursStr, System.Globalization.CultureInfo.InvariantCulture);
+
+            Activity copyActivity;
+            var copyCurrentActivityName = log.ActivityType?.Name ?? "none";
+            if (log.ActivityType == null || AnsiConsole.Confirm($"Change activity type? (current: {Markup.Escape(copyCurrentActivityName)})", defaultValue: false))
+            {
+                copyActivity = AnsiConsole.Prompt(
+                    new SelectionPrompt<Activity>()
+                        .Title("Activity type:")
+                        .UseConverter(a => Markup.Escape(a.Name))
+                        .AddChoices(activities));
+            }
+            else
+            {
+                copyActivity = activities.FirstOrDefault(a => a.Id == log.ActivityType.Id) ?? activities.First();
+            }
+
+            var copyComment = AnsiConsole.Prompt(
+                new TextPrompt<string>("Comment:")
+                    .AllowEmpty()
+                    .DefaultValue(log.Comment ?? string.Empty));
+
+            if (!DateTime.TryParse(copyDateStr, out var copyDate))
+            {
+                ConsoleHelper.WriteError("Invalid date.");
+                continue;
+            }
+
+            if (!TimeSpan.TryParse(copyHourStr, out var copyTime))
+            {
+                ConsoleHelper.WriteError("Invalid start hour.");
+                continue;
+            }
+
+            var copy = new TimetrackerWorklogRequest
+            {
+                TimeStamp = copyDate.Add(copyTime),
+                Length = (int)Math.Round(copyHours * 3600),
+                BillableLength = null,
+                WorkItemId = copyWorkItemId,
+                Comment = copyComment,
+                UserId = config.TimetrackerUserId,
+                ActivityTypeId = copyActivity.Id
+            };
+
+            await HttpService.PostWorkLog(copy, ct);
+            AnsiConsole.MarkupLine("[green]Entry copied.[/]");
+            continue;
+        }
 
         if (action == "Delete")
         {
