@@ -200,7 +200,7 @@ timetracker interactive --week --work-item 12345
 **Flow:**
 - Select an entry → choose **Edit**, **Copy**, **Delete**, or **Back** → confirm/fill fields → returns to the list automatically.
 - **Edit** → update any field; activity type change is optional (confirm prompt).
-- **Copy** → prompt for a target date (default: today), preserving all other fields.
+- **Copy** → pre-fills all fields from the original entry (date defaults to today); edit any field before saving as a new entry.
 - **Delete** → confirmation prompt before removal.
 - Select **── New entry ──** → fill in date, start hour, work item, duration, activity type, and comment → entry is created and the list refreshes.
 - Select **── Exit ──** to quit.
