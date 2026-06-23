@@ -30,6 +30,7 @@ timetracker config -u https://<company>.timehub.7pace.com -t <bearer-token>
 - [activities](#activities)
 - [add](#add)
 - [list](#list)
+- [interactive](#interactive)
 - [update](#update)
 - [copy](#copy)
 - [delete](#delete)
@@ -164,6 +165,45 @@ timetracker list --week --output json > worklogs.json
 # Export month as CSV
 timetracker list --month --output csv > worklogs.csv
 ```
+
+---
+
+### interactive
+
+Browse, create, copy, edit and delete time entries in an interactive terminal UI. Navigate with arrow keys and confirm actions via prompts. Defaults to today's entries.
+
+| Option | Short | Required | Description |
+|---|---|---|---|
+| `--period` | `-p` | no | Specific month in `YYYY/MM` format |
+| `--work-item` | `-w` | no | Filter by Work Item ID |
+| `--today` | | no | Entries for today (default) |
+| `--yesterday` | | no | Entries for yesterday |
+| `--week` | | no | Entries for the current week |
+| `--last-week` | | no | Entries for the previous week |
+| `--month` | | no | Entries for the current month |
+| `--last-month` | | no | Entries for the previous month |
+
+```bash
+# Browse today's entries
+timetracker interactive
+
+# Browse this week's entries
+timetracker interactive --week
+
+# Browse a specific month
+timetracker interactive --period 2026/06
+
+# Browse filtered by work item
+timetracker interactive --week --work-item 12345
+```
+
+**Flow:**
+- Select an entry → choose **Edit**, **Copy**, **Delete**, or **Back** → confirm/fill fields → returns to the list automatically.
+- **Edit** → update any field; activity type change is optional (confirm prompt).
+- **Copy** → prompt for a target date (default: today), preserving all other fields.
+- **Delete** → confirmation prompt before removal.
+- Select **── New entry ──** → fill in date, start hour, work item, duration, activity type, and comment → entry is created and the list refreshes.
+- Select **── Exit ──** to quit.
 
 ---
 
