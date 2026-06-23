@@ -170,7 +170,7 @@ timetracker list --month --output csv > worklogs.csv
 
 ### interactive
 
-Browse, edit and delete time entries in an interactive terminal UI. Navigate with arrow keys and confirm actions via prompts. Defaults to today's entries.
+Browse, create, edit and delete time entries in an interactive terminal UI. Navigate with arrow keys and confirm actions via prompts. Defaults to today's entries.
 
 | Option | Short | Required | Description |
 |---|---|---|---|
@@ -197,7 +197,10 @@ timetracker interactive --period 2026/06
 timetracker interactive --week --work-item 12345
 ```
 
-**Flow:** select an entry → choose **Edit**, **Delete**, or **Back** → confirm/fill fields → returns to the list automatically.
+**Flow:**
+- Select an entry → choose **Edit**, **Delete**, or **Back** → confirm/fill fields → returns to the list automatically.
+- Select **── New entry ──** → fill in date, start hour, work item, duration, activity type, and comment → entry is created and the list refreshes.
+- Select **── Exit ──** to quit.
 
 ---
 

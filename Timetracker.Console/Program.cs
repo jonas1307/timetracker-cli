@@ -590,6 +590,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
         var choices = logs
             .Select(l => Markup.Escape($"{l.TimeStamp:yyyy/MM/dd HH:mm}  #{l.WorkItemId,-7}  {Math.Round(l.Length / 3600m, 2),4}h  {l.ActivityType?.Name ?? "-",-18}  {Truncate(l.Comment ?? "-", 35)}"))
             .ToList();
+        choices.Add("── New entry ──");
         choices.Add("── Exit ──");
 
         var selected = AnsiConsole.Prompt(
@@ -600,6 +601,64 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
 
         if (selected == "── Exit ──")
             return 0;
+
+        if (selected == "── New entry ──")
+        {
+            var newDateStr = AnsiConsole.Prompt(
+                new TextPrompt<string>("Date (YYYY/MM/DD):")
+                    .DefaultValue(from.ToString("yyyy/MM/dd")));
+
+            var newHourStr = AnsiConsole.Prompt(
+                new TextPrompt<string>("Start hour (HH:MM):")
+                    .DefaultValue("09:00"));
+
+            var newWorkItemId = AnsiConsole.Prompt(
+                new TextPrompt<int>("Work Item ID:"));
+
+            var newHoursStr = AnsiConsole.Prompt(
+                new TextPrompt<string>("Duration in hours (e.g. 1 or 1.5):")
+                    .Validate(v => decimal.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _)
+                        ? ValidationResult.Success()
+                        : ValidationResult.Error("Enter a valid number, e.g. 1 or 1.5")));
+            var newHours = decimal.Parse(newHoursStr, System.Globalization.CultureInfo.InvariantCulture);
+
+            var newActivity = AnsiConsole.Prompt(
+                new SelectionPrompt<Activity>()
+                    .Title("Activity type:")
+                    .UseConverter(a => Markup.Escape(a.Name))
+                    .AddChoices(activities));
+
+            var newComment = AnsiConsole.Prompt(
+                new TextPrompt<string>("Comment:")
+                    .AllowEmpty());
+
+            if (!DateTime.TryParse(newDateStr, out var newDate))
+            {
+                ConsoleHelper.WriteError("Invalid date.");
+                continue;
+            }
+
+            if (!TimeSpan.TryParse(newHourStr, out var newTime))
+            {
+                ConsoleHelper.WriteError("Invalid start hour.");
+                continue;
+            }
+
+            var newEntry = new TimetrackerWorklogRequest
+            {
+                TimeStamp = newDate.Add(newTime),
+                Length = (int)Math.Round(newHours * 3600),
+                BillableLength = null,
+                WorkItemId = newWorkItemId,
+                Comment = newComment,
+                UserId = config.TimetrackerUserId,
+                ActivityTypeId = newActivity.Id
+            };
+
+            await HttpService.PostWorkLog(newEntry, ct);
+            AnsiConsole.MarkupLine("[green]Entry created.[/]");
+            continue;
+        }
 
         var log = logs[choices.IndexOf(selected)];
 
