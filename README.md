@@ -367,3 +367,62 @@ timetracker list --month --summary
 # Specific month
 timetracker list --period 2026/06 --summary
 ```
+
+---
+
+## Security
+
+### Credential storage
+
+The bearer token and user info are stored locally in a config file. The location and protection method depend on the OS:
+
+| OS | Location | Protection |
+|---|---|---|
+| Windows | `%LOCALAPPDATA%\Timetracker.Console\config.json` | Token encrypted with DPAPI (user-scoped) |
+| Linux / macOS | `~/.config/Timetracker.Console/config.json` | File permissions set to `600` (owner read/write only) |
+
+On Windows, the encrypted token can only be decrypted by the same OS user account that ran `config`. On Linux/macOS, the file is not encrypted but is restricted to the owner.
+
+### HTTPS enforcement
+
+The `--url` option only accepts `https://` URLs. Plain HTTP is rejected to prevent the bearer token from being transmitted over an unencrypted connection.
+
+---
+
+## Troubleshooting
+
+### `401 Unauthorized` on any command
+
+The bearer token has expired or is invalid. Run `config` again with a new token:
+
+```bash
+timetracker config -u https://<company>.timehub.7pace.com -t <new-token>
+```
+
+### `Activity type 'X' not found`
+
+The local activity cache is out of sync with the server. Refresh it:
+
+```bash
+timetracker activities --sync
+```
+
+### `config.json does not exist`
+
+The tool has not been configured yet. Run the first-time setup:
+
+```bash
+timetracker config -u https://<company>.timehub.7pace.com -t <bearer-token>
+```
+
+### `The provided URL is invalid or does not use HTTPS`
+
+The URL must start with `https://`. Example:
+
+```bash
+# Wrong
+timetracker config -u http://acme.timehub.7pace.com -t <token>
+
+# Correct
+timetracker config -u https://acme.timehub.7pace.com -t <token>
+```
