@@ -5,7 +5,20 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>timetracker</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>timetracker</ToolCommandName>
+    <PackageId>timetracker-cli</PackageId>
+    <Version>1.0.0</Version>
+    <Description>CLI for managing time entries in 7pace Timetracker.</Description>
+    <Authors>Jonas Lima de Amorim</Authors>
+    <RepositoryUrl>https://github.com/jonas1307/timetracker-cli</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/jonas1307/timetracker-cli</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
