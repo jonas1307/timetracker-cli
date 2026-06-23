@@ -20,7 +20,7 @@ public static class ValidationUtils
 
     public static bool ValidUrl(string url) =>
         Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
-        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+        uri.Scheme == Uri.UriSchemeHttps;
 
     public static DateTime ResolveDate(string input)
     {

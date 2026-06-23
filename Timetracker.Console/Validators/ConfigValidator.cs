@@ -15,7 +15,7 @@ public class ConfigValidator : AbstractValidator<ConfigOptions>
 
             RuleFor(x => x.TimetrackerUrl)
                 .NotEmpty().WithMessage("The Timetracker URL is required. Please provide the base URL.")
-                .Must(ValidationUtils.ValidUrl).WithMessage("The provided URL is invalid. Ensure it is in the format 'https://<company>.timehub.7pace.com'.");
+                .Must(ValidationUtils.ValidUrl).WithMessage("The provided URL is invalid or does not use HTTPS. Ensure it is in the format 'https://<company>.timehub.7pace.com'.");
         });
     }
 }
