@@ -14,6 +14,7 @@
     <RepositoryUrl>https://github.com/jonas1307/timetracker-cli</RepositoryUrl>
     <PackageProjectUrl>https://github.com/jonas1307/timetracker-cli</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
