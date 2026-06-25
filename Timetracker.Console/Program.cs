@@ -375,10 +375,16 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         {
             var hours = Math.Round(log.Length / 3600m, 2);
             var type = log.ActivityType?.Name ?? "-";
-            var comment = string.IsNullOrEmpty(log.Comment) ? "-" : (log.Comment.Length > 30 ? log.Comment[..30] + "..." : log.Comment);
-            var lastColumn = opts.ShowIds ? log.Id : comment;
 
-            Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.TimeStamp.DayOfWeek,9} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {lastColumn}");
+            if (opts.ShowIds)
+            {
+                Console.WriteLine($"  {log.Id} | {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.TimeStamp.DayOfWeek,9} | {log.WorkItemId,-7} | {hours,4}h | {type,-20}");
+            }
+            else
+            {
+                var comment = string.IsNullOrEmpty(log.Comment) ? "-" : Truncate(log.Comment, 33);
+                Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.TimeStamp.DayOfWeek,9} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {comment}");
+            }
         }
     }
 
@@ -820,4 +826,4 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
 }
 
 static string Truncate(string value, int max) =>
-    value.Length > max ? value[..(max - 1)] + "…" : value;
+    value.Length > max ? value[..(max - 3)] + "..." : value;
