@@ -28,7 +28,7 @@ try
 }
 catch (OperationCanceledException)
 {
-    ConsoleHelper.WriteError("Operation cancelled.");
+    ConsoleHelper.WriteWarning(ConsoleHelper.OperationCancelled);
     return 1;
 }
 catch (Exception ex)
@@ -41,7 +41,7 @@ async Task<int> ActivitiesAction(ActivitiesOptions opts, CancellationToken cance
 {
     if (!ConfigService.ConfigExists())
     {
-        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
         return 1;
     }
 
@@ -54,11 +54,17 @@ async Task<int> ActivitiesAction(ActivitiesOptions opts, CancellationToken cance
 
     var activities = ActivityService.GetActivities();
 
-    ConsoleHelper.WriteSuccess("The available activities are: ");
+    if (activities is null || activities.Count == 0)
+    {
+        ConsoleHelper.WriteWarning("No activities found. Run 'activities --sync' to fetch them from the server.");
+        return 0;
+    }
+
+    Console.WriteLine("Available activities:");
 
     foreach (var item in activities)
     {
-        Console.WriteLine(item.Name);
+        Console.WriteLine($"  {item.Name}");
     }
 
     return 0;
@@ -70,7 +76,7 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
     {
         if (!ConfigService.ConfigExists())
         {
-            ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+            ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
             return 1;
         }
 
@@ -93,7 +99,7 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         ConfigService.DeleteConfig();
         ActivityService.DeleteActivities();
         
-        ConsoleHelper.WriteSuccess("Configuration reset successfully. Run 'config --url <url> --token <token>' to reconfigure.");
+        ConsoleHelper.WriteSuccess("Configuration reset. Run 'config --url <url> --token <token>' to reconfigure.");
         
         return 0;
     }
@@ -112,13 +118,9 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         return 1;
     }
 
-    Console.WriteLine("Obtaining user info...");
+    Console.WriteLine("Authenticating with Timetracker...");
 
     var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken, cancellationToken);
-
-    Console.WriteLine("User info obtained successfully.");
-
-    Console.WriteLine("Creating config file...");
 
     ConfigService.SaveConfig(
         opts,
@@ -128,13 +130,9 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         user.Data.Account.Name
     );
 
-    Console.WriteLine("Config file created.");
-
-    Console.WriteLine("Creating activities...");
-
     await ActivityService.SeedActivities(cancellationToken);
 
-    Console.WriteLine("Activities file created.");
+    ConsoleHelper.WriteSuccess($"Configuration saved. Logged in as {user.Data.User.DisplayName} ({user.Data.User.Email}).");
 
     return 0;
 }
@@ -143,7 +141,7 @@ static async Task<int> DeleteAction(DeleteOptions opts, CancellationToken cancel
 {
     if (!ConfigService.ConfigExists())
     {
-        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
         return 1;
     }
 
@@ -166,7 +164,7 @@ static async Task<int> DeleteAction(DeleteOptions opts, CancellationToken cancel
         var answer = Console.ReadLine();
         if (!string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine("Cancelled.");
+            ConsoleHelper.WriteWarning(ConsoleHelper.OperationCancelled);
             return 0;
         }
     }
@@ -174,11 +172,13 @@ static async Task<int> DeleteAction(DeleteOptions opts, CancellationToken cancel
     foreach (var id in ids)
     {
         await HttpService.DeleteWorkLog(id, cancellationToken);
-        Console.WriteLine($"Deleted: {id}");
+        if (ids.Count > 1)
+            Console.WriteLine($"Deleted: {id}");
     }
 
-    Console.WriteLine();
-    ConsoleHelper.WriteSuccess($"{ids.Count} {(ids.Count == 1 ? "entry" : "entries")} deleted successfully.");
+    if (ids.Count > 1)
+        Console.WriteLine();
+    ConsoleHelper.WriteSuccess($"{ids.Count} time {(ids.Count == 1 ? "entry" : "entries")} deleted.");
 
     return 0;
 }
@@ -187,7 +187,7 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
 {
     if (!ConfigService.ConfigExists())
     {
-        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
         return 1;
     }
 
@@ -226,7 +226,7 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
 
     var createdId = await HttpService.RegisterActivity(opts, activityId, cancellationToken);
 
-    ConsoleHelper.WriteSuccess($"Activity successfully created. ID: {createdId}");
+    ConsoleHelper.WriteSuccess($"Time entry created (ID: {createdId})");
 
     return 0;
 }
@@ -235,7 +235,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 {
     if (!ConfigService.ConfigExists())
     {
-        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
         return 1;
     }
 
@@ -309,7 +309,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     if (workLogs is null || workLogs.Count == 0)
     {
-        Console.WriteLine("No time entries found for the specified period.");
+        ConsoleHelper.WriteWarning(ConsoleHelper.NoTimeEntries);
         return 0;
     }
 
@@ -383,7 +383,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     }
 
     Console.WriteLine();
-    ConsoleHelper.WriteSuccess($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
+    Console.WriteLine($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
 }
@@ -392,7 +392,7 @@ static async Task<int> UpdateAction(UpdateOptions opts, CancellationToken cancel
 {
     if (!ConfigService.ConfigExists())
     {
-        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
         return 1;
     }
 
@@ -439,7 +439,7 @@ static async Task<int> UpdateAction(UpdateOptions opts, CancellationToken cancel
 
     await HttpService.UpdateWorkLog(opts.WorkLogId, updated, cancellationToken);
 
-    ConsoleHelper.WriteSuccess($"Time entry '{opts.WorkLogId}' updated successfully.");
+    ConsoleHelper.WriteSuccess($"Time entry updated (ID: {opts.WorkLogId})");
 
     return 0;
 }
@@ -448,7 +448,7 @@ static async Task<int> CopyAction(CopyOptions opts, CancellationToken cancellati
 {
     if (!ConfigService.ConfigExists())
     {
-        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
         return 1;
     }
 
@@ -475,7 +475,7 @@ static async Task<int> CopyAction(CopyOptions opts, CancellationToken cancellati
 
     var createdId = await HttpService.PostWorkLog(copy, cancellationToken);
 
-    ConsoleHelper.WriteSuccess($"Time entry copied successfully. New ID: {createdId}");
+    ConsoleHelper.WriteSuccess($"Time entry copied (new ID: {createdId})");
 
     return 0;
 }
@@ -484,7 +484,7 @@ static async Task<int> ImportAction(ImportOptions opts, CancellationToken cancel
 {
     if (!ConfigService.ConfigExists())
     {
-        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
         return 1;
     }
 
@@ -527,10 +527,8 @@ static async Task<int> ImportAction(ImportOptions opts, CancellationToken cancel
         return 0;
     }
 
-    Console.WriteLine($"Importing {entries.Count} {(entries.Count == 1 ? "entry" : "entries")}...");
     var created = await HttpService.ImportWorkLogs(entries, cancellationToken);
-    Console.WriteLine();
-    ConsoleHelper.WriteSuccess($"Successfully imported {created.Count} {(created.Count == 1 ? "entry" : "entries")}.");
+    ConsoleHelper.WriteSuccess($"{created.Count} time {(created.Count == 1 ? "entry" : "entries")} imported.");
 
     return 0;
 }
@@ -546,7 +544,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
 {
     if (!ConfigService.ConfigExists())
     {
-        ConsoleHelper.WriteError("Configuration not found. Please run the 'config' command first.");
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
         return 1;
     }
 
@@ -583,7 +581,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
 
         if (logs.Count == 0)
         {
-            AnsiConsole.MarkupLine("[yellow]No entries found for the selected period.[/]");
+            AnsiConsole.MarkupLine($"[yellow]{Markup.Escape(ConsoleHelper.NoTimeEntries)}[/]");
             return 0;
         }
 
@@ -656,7 +654,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
             };
 
             await HttpService.PostWorkLog(newEntry, ct);
-            AnsiConsole.MarkupLine("[green]Entry created.[/]");
+            AnsiConsole.MarkupLine("[green]Time entry created.[/]");
             continue;
         }
 
@@ -737,7 +735,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
             };
 
             await HttpService.PostWorkLog(copy, ct);
-            AnsiConsole.MarkupLine("[green]Entry copied.[/]");
+            AnsiConsole.MarkupLine("[green]Time entry copied.[/]");
             continue;
         }
 
@@ -747,7 +745,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
             if (!confirmed) continue;
 
             await HttpService.DeleteWorkLog(log.Id, ct);
-            AnsiConsole.MarkupLine("[green]Entry deleted.[/]");
+            AnsiConsole.MarkupLine("[green]Time entry deleted.[/]");
             continue;
         }
 
@@ -817,7 +815,7 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
         };
 
         await HttpService.UpdateWorkLog(log.Id, updated, ct);
-        AnsiConsole.MarkupLine("[green]Entry updated.[/]");
+        AnsiConsole.MarkupLine("[green]Time entry updated.[/]");
     }
 }
 
