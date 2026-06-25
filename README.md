@@ -318,6 +318,30 @@ timetracker import --file worklogs.json
 
 ## Common workflows
 
+### Manage entries interactively
+
+For day-to-day work, `interactive` is the fastest path — create, copy, edit, and delete without memorizing flags. It defaults to today's entries.
+
+```bash
+# Drive the whole day from a single terminal UI
+timetracker interactive
+
+# Review and fix a past week
+timetracker interactive --last-week
+```
+
+### Log a full day
+
+```bash
+# Several entries on the same day, across different work items
+timetracker add -d today -w 12345 -l 2 -t Development -c "Feature X"
+timetracker add -d today -w 12345 -l 1.5 -t Development -c "Code review"
+timetracker add -d today -w 67890 -l 0.5 -t Meeting -h 14:00 -c "Daily"
+
+# Review what was logged
+timetracker list --today
+```
+
 ### Find and delete an entry
 
 ```bash
@@ -356,6 +380,33 @@ timetracker import --file worklogs.json --dry-run
 
 # Import
 timetracker import --file worklogs.json
+```
+
+### Replicate last week
+
+For a fixed weekly routine, export the previous week, shift the dates, and re-import.
+
+```bash
+# Export last week
+timetracker list --last-week --output json > lastweek.json
+
+# Edit lastweek.json: bump each "date" forward by 7 days, then preview
+timetracker import --file lastweek.json --dry-run
+
+# Import
+timetracker import --file lastweek.json
+```
+
+### Check for missing entries
+
+Spot days with incomplete or no hours before the month closes.
+
+```bash
+# Daily totals for the current week — gaps stand out
+timetracker list --week --summary
+
+# Same for a specific month
+timetracker list --period 2026/06 --summary
 ```
 
 ### Monthly summary
