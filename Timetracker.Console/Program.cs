@@ -410,17 +410,17 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
                     Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
                     Markup.Escape(log.WorkItemId.ToString()),
                     $"{hours}h",
-                    Markup.Escape(type));
+                    Markup.Escape(Truncate(type, 22)));
             }
             else
             {
-                var comment = string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment;
+                var comment = string.IsNullOrEmpty(log.Comment) ? "-" : Truncate(log.Comment, 45);
                 table.AddRow(
                     $"{log.TimeStamp:yyyy/MM/dd HH:mm}",
                     Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
                     Markup.Escape(log.WorkItemId.ToString()),
                     $"{hours}h",
-                    Markup.Escape(type),
+                    Markup.Escape(Truncate(type, 22)),
                     Markup.Escape(comment));
             }
         }
