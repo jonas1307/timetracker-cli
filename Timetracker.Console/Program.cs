@@ -314,7 +314,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     var totalHours = Math.Round(workLogs.Sum(x => x.Length) / 3600m, 2);
 
-    Console.WriteLine($"Time entries from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
+    TableHelper.WriteMuted($"Time entries from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
     Console.WriteLine();
 
     var table = opts.ShowIds
@@ -352,7 +352,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     AnsiConsole.Write(table);
 
     Console.WriteLine();
-    TableHelper.WriteFooter($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
+    TableHelper.WriteMuted($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
 }
@@ -382,7 +382,7 @@ static async Task<int> SummaryAction(SummaryOptions opts, CancellationToken canc
 
     var totalHours = Math.Round(workLogs.Sum(x => x.Length) / 3600m, 2);
 
-    Console.WriteLine($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
+    TableHelper.WriteMuted($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
     Console.WriteLine();
 
     var table = TableHelper.NewTable("DATE", "DAY", "HOURS", "ENTRIES");
@@ -401,7 +401,7 @@ static async Task<int> SummaryAction(SummaryOptions opts, CancellationToken canc
     AnsiConsole.Write(table);
 
     Console.WriteLine();
-    TableHelper.WriteFooter($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
+    TableHelper.WriteMuted($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
 }
