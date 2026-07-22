@@ -16,6 +16,7 @@ public record Config
     public string Email { get; set; }
     public string AccountName { get; set; }
     public bool TokenEncrypted { get; set; }
+    public string TableBorder { get; set; }
 }
 
 public static class ConfigService
@@ -82,9 +83,41 @@ public static class ConfigService
             DisplayName = displayName,
             Email = email,
             AccountName = accountName,
-            TokenEncrypted = tokenEncrypted
+            TokenEncrypted = tokenEncrypted,
+            TableBorder = opts.Border ?? GetTableBorder()
         };
 
+        File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
+
+        if (!OperatingSystem.IsWindows())
+            File.SetUnixFileMode(configPath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+    }
+
+    /// <summary>Reads the configured table border without decrypting the token; null if unset.</summary>
+    public static string GetTableBorder()
+    {
+        var configPath = GetConfigPath();
+        if (!File.Exists(configPath))
+            return null;
+
+        try
+        {
+            return JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath))?.TableBorder;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Updates only the table border, preserving the (encrypted) token and everything else.</summary>
+    public static void SetTableBorder(string border)
+    {
+        var configPath = GetConfigPath();
+        if (!File.Exists(configPath))
+            throw new FileNotFoundException($"{JSON_FILE_NAME} does not exist. Make sure you already executed the config method.");
+
+        var config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath)) with { TableBorder = border };
         File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
 
         if (!OperatingSystem.IsWindows())

@@ -68,6 +68,7 @@ Configure the connection to your Timetracker instance.
 |---|---|---|---|
 | `--url` | `-u` | yes* | Base URL of your Timetracker instance |
 | `--token` | `-t` | yes* | Bearer token for authentication |
+| `--border` | | no | Table border style for list output: `minimal` (default), `square`, or `markdown` |
 | `--show` | | no | Display current config (token masked) |
 | `--reset` | | no | Delete all local config and activity cache |
 
@@ -79,6 +80,9 @@ timetracker config -u https://acme.timehub.7pace.com -t eyJ...
 
 # View current config
 timetracker config --show
+
+# Change the list table border (keeps credentials)
+timetracker config --border square
 
 # Remove all local config
 timetracker config --reset
