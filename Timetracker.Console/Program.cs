@@ -318,8 +318,8 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     Console.WriteLine();
 
     var table = opts.ShowIds
-        ? TableHelper.NewTable("ID", "DATE", "DAY", "WORK ITEM", "HOURS", "TYPE")
-        : TableHelper.NewTable("DATE", "DAY", "WORK ITEM", "HOURS", "TYPE", "COMMENT");
+        ? TableHelper.NewTable("DATE", "WEEKDAY", "WORK ITEM", "HOURS", "TYPE", "ID")
+        : TableHelper.NewTable("DATE", "WEEKDAY", "WORK ITEM", "HOURS", "TYPE", "COMMENT");
 
     foreach (var log in workLogs.OrderBy(x => x.TimeStamp))
     {
@@ -329,12 +329,12 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         if (opts.ShowIds)
         {
             table.AddRow(
-                Markup.Escape(log.Id ?? "-"),
                 $"{log.TimeStamp:yyyy/MM/dd HH:mm}",
                 Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
                 Markup.Escape(log.WorkItemId.ToString()),
                 $"{hours}h",
-                Markup.Escape(Truncate(type, 22)));
+                Markup.Escape(Truncate(type, 22)),
+                Markup.Escape(log.Id ?? "-"));
         }
         else
         {
@@ -385,7 +385,7 @@ static async Task<int> SummaryAction(SummaryOptions opts, CancellationToken canc
     TableHelper.WriteMuted($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
     Console.WriteLine();
 
-    var table = TableHelper.NewTable("DATE", "DAY", "HOURS", "ENTRIES");
+    var table = TableHelper.NewTable("DATE", "WEEKDAY", "HOURS", "ENTRIES");
 
     foreach (var day in workLogs.GroupBy(x => x.TimeStamp.Date).OrderBy(g => g.Key))
     {

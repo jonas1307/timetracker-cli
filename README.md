@@ -158,7 +158,7 @@ List time entries for a period.
 | `--last-week` | | no | Entries for the previous week (Mon–Sun) |
 | `--month` | | no | Entries for the current month |
 | `--last-month` | | no | Entries for the previous month |
-| `--ids` | | no | Show entry IDs instead of comments |
+| `--ids` | | no | Show entry IDs in the last column, in place of comments |
 
 All period shortcuts (`--today`, `--yesterday`, `--week`, `--last-week`, `--month`, `--last-month`) and `--period` are mutually exclusive and cannot be combined with `--from` or `--to`.
 
