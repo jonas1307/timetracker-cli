@@ -16,4 +16,7 @@ public class ConfigOptions
 
     [Option("reset", Required = false, HelpText = "Remove all local configuration and activity cache files.")]
     public bool Reset { get; set; }
+
+    [Option("border", Required = false, HelpText = "Table border style for list output: minimal (default), square, or markdown.")]
+    public string Border { get; set; }
 }

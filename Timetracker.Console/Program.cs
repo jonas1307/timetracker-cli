@@ -90,6 +90,7 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         Console.WriteLine($"URL:    {config.TimetrackerUrl}");
         Console.WriteLine($"Token:  {maskedToken}");
         Console.WriteLine($"UserId: {config.TimetrackerUserId}");
+        Console.WriteLine($"Border: {config.TableBorder ?? "minimal"}");
 
         return 0;
     }
@@ -98,9 +99,9 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
     {
         ConfigService.DeleteConfig();
         ActivityService.DeleteActivities();
-        
+
         ConsoleHelper.WriteSuccess("Configuration reset. Run 'config --url <url> --token <token>' to reconfigure.");
-        
+
         return 0;
     }
 
@@ -116,6 +117,23 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         }
 
         return 1;
+    }
+
+    // Border-only update: preserve credentials, just change the border.
+    if (!string.IsNullOrEmpty(opts.Border)
+        && string.IsNullOrEmpty(opts.TimetrackerUrl)
+        && string.IsNullOrEmpty(opts.TimetrackerBearerToken))
+    {
+        if (!ConfigService.ConfigExists())
+        {
+            ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
+            return 1;
+        }
+
+        var border = opts.Border.ToLowerInvariant();
+        ConfigService.SetTableBorder(border);
+        ConsoleHelper.WriteSuccess($"Table border set to '{border}'.");
+        return 0;
     }
 
     Console.WriteLine("Authenticating with Timetracker...");
@@ -355,21 +373,29 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         Console.WriteLine($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
         Console.WriteLine();
 
-        var byDay = workLogs
-            .GroupBy(x => x.TimeStamp.Date)
-            .OrderBy(g => g.Key);
+        var table = TableHelper.NewTable("DATE", "DAY", "HOURS", "ENTRIES");
 
-        foreach (var day in byDay)
+        foreach (var day in workLogs.GroupBy(x => x.TimeStamp.Date).OrderBy(g => g.Key))
         {
             var dayHours = Math.Round(day.Sum(x => x.Length) / 3600m, 2);
             var count = day.Count();
-            Console.WriteLine($"  {day.Key:yyyy/MM/dd} | {day.Key.DayOfWeek,9} | {dayHours,4}h | {count} {(count == 1 ? "entry" : "entries")}");
+            table.AddRow(
+                $"{day.Key:yyyy/MM/dd}",
+                Markup.Escape(day.Key.DayOfWeek.ToString()),
+                $"{dayHours}h",
+                count.ToString());
         }
+
+        AnsiConsole.Write(table);
     }
     else
     {
         Console.WriteLine($"Time entries from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
         Console.WriteLine();
+
+        var table = opts.ShowIds
+            ? TableHelper.NewTable("ID", "DATE", "DAY", "WORK ITEM", "HOURS", "TYPE")
+            : TableHelper.NewTable("DATE", "DAY", "WORK ITEM", "HOURS", "TYPE", "COMMENT");
 
         foreach (var log in workLogs.OrderBy(x => x.TimeStamp))
         {
@@ -378,14 +404,28 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
             if (opts.ShowIds)
             {
-                Console.WriteLine($"  {log.Id} | {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.TimeStamp.DayOfWeek,9} | {log.WorkItemId,-7} | {hours,4}h | {type,-20}");
+                table.AddRow(
+                    Markup.Escape(log.Id ?? "-"),
+                    $"{log.TimeStamp:yyyy/MM/dd HH:mm}",
+                    Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
+                    Markup.Escape(log.WorkItemId.ToString()),
+                    $"{hours}h",
+                    Markup.Escape(type));
             }
             else
             {
-                var comment = string.IsNullOrEmpty(log.Comment) ? "-" : Truncate(log.Comment, 33);
-                Console.WriteLine($"  {log.TimeStamp:yyyy/MM/dd HH:mm} | {log.TimeStamp.DayOfWeek,9} | {log.WorkItemId,-7} | {hours,4}h | {type,-20} | {comment}");
+                var comment = string.IsNullOrEmpty(log.Comment) ? "-" : log.Comment;
+                table.AddRow(
+                    $"{log.TimeStamp:yyyy/MM/dd HH:mm}",
+                    Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
+                    Markup.Escape(log.WorkItemId.ToString()),
+                    $"{hours}h",
+                    Markup.Escape(type),
+                    Markup.Escape(comment));
             }
         }
+
+        AnsiConsole.Write(table);
     }
 
     Console.WriteLine();
