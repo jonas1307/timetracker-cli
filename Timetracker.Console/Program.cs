@@ -352,7 +352,7 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
     AnsiConsole.Write(table);
 
     Console.WriteLine();
-    Console.WriteLine($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
+    TableHelper.WriteFooter($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
 }
@@ -401,7 +401,7 @@ static async Task<int> SummaryAction(SummaryOptions opts, CancellationToken canc
     AnsiConsole.Write(table);
 
     Console.WriteLine();
-    Console.WriteLine($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
+    TableHelper.WriteFooter($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
 }
