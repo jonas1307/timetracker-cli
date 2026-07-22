@@ -58,7 +58,30 @@ public static class ConfigService
         return config;
     }
 
-    public static void SaveConfig(ConfigOptions opts, string userId, string displayName, string email, string accountName)
+    /// <summary>
+    /// Merges the provided options into the existing configuration: only values actually
+    /// supplied are overwritten, everything else is preserved. Safe for partial updates.
+    /// </summary>
+    public static void SaveConfig(ConfigOptions opts, string userId = null, string displayName = null, string email = null, string accountName = null)
+    {
+        // LoadConfig returns the token already decrypted; WriteConfig re-encrypts it.
+        var existing = ConfigExists() ? LoadConfig() : new Config();
+
+        var config = new Config
+        {
+            TimetrackerUrl = opts.TimetrackerUrl ?? existing.TimetrackerUrl,
+            TimetrackerBearerToken = opts.TimetrackerBearerToken ?? existing.TimetrackerBearerToken,
+            TimetrackerUserId = userId ?? existing.TimetrackerUserId,
+            DisplayName = displayName ?? existing.DisplayName,
+            Email = email ?? existing.Email,
+            AccountName = accountName ?? existing.AccountName,
+            TableBorder = opts.Border?.ToLowerInvariant() ?? existing.TableBorder
+        };
+
+        WriteConfig(config);
+    }
+
+    private static void WriteConfig(Config config)
     {
         var configPath = GetConfigPath();
         var folderPath = Path.GetDirectoryName(configPath);
@@ -66,26 +89,8 @@ public static class ConfigService
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 
-        string token = opts.TimetrackerBearerToken;
-        bool tokenEncrypted = false;
-
-        if (OperatingSystem.IsWindows())
-        {
-            token = EncryptToken(token);
-            tokenEncrypted = true;
-        }
-
-        var config = new Config
-        {
-            TimetrackerUrl = opts.TimetrackerUrl,
-            TimetrackerBearerToken = token,
-            TimetrackerUserId = userId,
-            DisplayName = displayName,
-            Email = email,
-            AccountName = accountName,
-            TokenEncrypted = tokenEncrypted,
-            TableBorder = opts.Border ?? GetTableBorder()
-        };
+        if (OperatingSystem.IsWindows() && !string.IsNullOrEmpty(config.TimetrackerBearerToken))
+            config = config with { TimetrackerBearerToken = EncryptToken(config.TimetrackerBearerToken), TokenEncrypted = true };
 
         File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
 
@@ -110,19 +115,6 @@ public static class ConfigService
         }
     }
 
-    /// <summary>Updates only the table border, preserving the (encrypted) token and everything else.</summary>
-    public static void SetTableBorder(string border)
-    {
-        var configPath = GetConfigPath();
-        if (!File.Exists(configPath))
-            throw new FileNotFoundException($"{JSON_FILE_NAME} does not exist. Make sure you already executed the config method.");
-
-        var config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath)) with { TableBorder = border };
-        File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
-
-        if (!OperatingSystem.IsWindows())
-            File.SetUnixFileMode(configPath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
-    }
 
     [SupportedOSPlatform("windows")]
     private static string EncryptToken(string token)
