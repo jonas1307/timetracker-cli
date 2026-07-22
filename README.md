@@ -72,7 +72,9 @@ Configure the connection to your Timetracker instance.
 | `--show` | | no | Display current config (token masked) |
 | `--reset` | | no | Delete all local config and activity cache |
 
-*Required when setting up or updating credentials.
+*Required only on first-time setup.
+
+Configuration updates are **non-destructive**: once configured, each option can be changed on its own and everything else is preserved. Only `--url`/`--token` trigger a re-authentication (and refresh of the activity cache).
 
 ```bash
 # Initial setup
@@ -81,7 +83,10 @@ timetracker config -u https://acme.timehub.7pace.com -t eyJ...
 # View current config
 timetracker config --show
 
-# Change the list table border (keeps credentials)
+# Rotate just the token (URL and other settings are kept)
+timetracker config -t eyJnew...
+
+# Change the list table border (no network call, credentials untouched)
 timetracker config --border square
 
 # Remove all local config

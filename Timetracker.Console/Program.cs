@@ -119,26 +119,30 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         return 1;
     }
 
-    // Border-only update: preserve credentials, just change the border.
-    if (!string.IsNullOrEmpty(opts.Border)
-        && string.IsNullOrEmpty(opts.TimetrackerUrl)
-        && string.IsNullOrEmpty(opts.TimetrackerBearerToken))
-    {
-        if (!ConfigService.ConfigExists())
-        {
-            ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
-            return 1;
-        }
+    // Only re-authenticate when credentials are actually being set or changed.
+    var settingCredentials = !string.IsNullOrEmpty(opts.TimetrackerUrl)
+                             || !string.IsNullOrEmpty(opts.TimetrackerBearerToken);
 
-        var border = opts.Border.ToLowerInvariant();
-        ConfigService.SetTableBorder(border);
-        ConsoleHelper.WriteSuccess($"Table border set to '{border}'.");
+    if (!settingCredentials)
+    {
+        // Partial update (e.g. only --border): merge into the existing config, no network call.
+        ConfigService.SaveConfig(opts);
+
+        ConsoleHelper.WriteSuccess(!string.IsNullOrEmpty(opts.Border)
+            ? $"Table border set to '{opts.Border.ToLowerInvariant()}'."
+            : "Configuration updated.");
+
         return 0;
     }
 
+    // Authenticate with the effective credentials (newly provided ones fall back to what is stored).
+    var current = ConfigService.ConfigExists() ? ConfigService.LoadConfig() : null;
+    var url = opts.TimetrackerUrl ?? current?.TimetrackerUrl;
+    var token = opts.TimetrackerBearerToken ?? current?.TimetrackerBearerToken;
+
     Console.WriteLine("Authenticating with Timetracker...");
 
-    var user = await HttpService.GetTimetrackerUser(opts.TimetrackerUrl, opts.TimetrackerBearerToken, cancellationToken);
+    var user = await HttpService.GetTimetrackerUser(url, token, cancellationToken);
 
     ConfigService.SaveConfig(
         opts,
