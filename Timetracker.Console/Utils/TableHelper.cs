@@ -14,8 +14,11 @@ public static class TableHelper
         return table;
     }
 
-    /// <summary>Prints a dim footer line (e.g., totals) below a table.</summary>
-    public static void WriteFooter(string text) => AnsiConsole.MarkupLine($"[dim]{Markup.Escape(text)}[/]");
+    /// <summary>
+    /// Prints a muted line for context around a table (the period header and the totals
+    /// footer), so the table itself stands out as the actual result.
+    /// </summary>
+    public static void WriteMuted(string text) => AnsiConsole.MarkupLine($"[grey]{Markup.Escape(text)}[/]");
 
     private static TableBorder ResolveBorder() => ConfigService.GetTableBorder()?.ToLowerInvariant() switch
     {

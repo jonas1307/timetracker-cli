@@ -12,12 +12,13 @@ Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
 try
 {
-    return await Parser.Default.ParseArguments<ConfigOptions, ActivitiesOptions, AddOptions, ListOptions, DeleteOptions, UpdateOptions, CopyOptions, ImportOptions, InteractiveOptions>(args)
+    return await Parser.Default.ParseArguments<ConfigOptions, ActivitiesOptions, AddOptions, ListOptions, SummaryOptions, DeleteOptions, UpdateOptions, CopyOptions, ImportOptions, InteractiveOptions>(args)
         .MapResult(
             async (ConfigOptions opts) => await ConfigAction(opts, cts.Token),
             async (AddOptions opts) => await AddActions(opts, cts.Token),
             async (ActivitiesOptions opts) => await ActivitiesAction(opts, cts.Token),
             async (ListOptions opts) => await ListActions(opts, cts.Token),
+            async (SummaryOptions opts) => await SummaryAction(opts, cts.Token),
             async (DeleteOptions opts) => await DeleteAction(opts, cts.Token),
             async (UpdateOptions opts) => await UpdateAction(opts, cts.Token),
             async (CopyOptions opts) => await CopyAction(opts, cts.Token),
@@ -261,69 +262,10 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
         return 1;
     }
 
-    DateTime from, to;
-
-    var periodFlags = new[] { opts.Today, opts.Yesterday, opts.Week, opts.LastWeek, opts.Month, opts.LastMonth, !string.IsNullOrEmpty(opts.Period) }.Count(x => x);
-    if (periodFlags > 1)
+    if (!PeriodResolver.TryResolve(opts, out var from, out var to, out var periodError))
     {
-        ConsoleHelper.WriteError("--today, --yesterday, --week, --last-week, --month, --last-month and --period are mutually exclusive.");
+        ConsoleHelper.WriteError(periodError);
         return 1;
-    }
-
-    if ((opts.Today || opts.Yesterday || opts.Week || opts.LastWeek || opts.Month || opts.LastMonth) && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
-    {
-        ConsoleHelper.WriteError("Period shortcuts cannot be used together with --from or --to.");
-        return 1;
-    }
-
-    if (opts.Today)
-    {
-        from = to = DateTime.Today;
-    }
-    else if (opts.Yesterday)
-    {
-        from = to = DateTime.Today.AddDays(-1);
-    }
-    else if (opts.Week)
-    {
-        (from, to) = ValidationUtils.ResolveCurrentWeek();
-    }
-    else if (opts.LastWeek)
-    {
-        (from, to) = ValidationUtils.ResolveLastWeek();
-    }
-    else if (opts.Month)
-    {
-        (from, to) = ValidationUtils.ResolveCurrentMonth();
-    }
-    else if (opts.LastMonth)
-    {
-        (from, to) = ValidationUtils.ResolveLastMonth();
-    }
-    else if (!string.IsNullOrEmpty(opts.Period))
-    {
-        if (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To))
-        {
-            ConsoleHelper.WriteError("--period cannot be used together with --from or --to.");
-            return 1;
-        }
-
-        if (!ValidationUtils.TryResolveMonth(opts.Period, out from, out to))
-        {
-            ConsoleHelper.WriteError("Invalid period format. Use YYYY/MM (e.g., 2026/06).");
-            return 1;
-        }
-    }
-    else
-    {
-        from = ValidationUtils.ResolveDate(opts.From);
-        to = ValidationUtils.ResolveDate(opts.To);
-
-        if (from > to)
-        {
-            ConsoleHelper.WriteError("The 'from' date must be earlier than or equal to the 'to' date.");
-            return 1;
-        }
     }
 
     var result = await HttpService.ListWorkLogs(from, to, opts.WorkItemId, cancellationToken);
@@ -372,68 +314,94 @@ static async Task<int> ListActions(ListOptions opts, CancellationToken cancellat
 
     var totalHours = Math.Round(workLogs.Sum(x => x.Length) / 3600m, 2);
 
-    if (opts.Summary)
+    TableHelper.WriteMuted($"Time entries from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
+    Console.WriteLine();
+
+    var table = opts.ShowIds
+        ? TableHelper.NewTable("DATE", "WEEKDAY", "WORK ITEM", "HOURS", "TYPE", "ID")
+        : TableHelper.NewTable("DATE", "WEEKDAY", "WORK ITEM", "HOURS", "TYPE", "COMMENT");
+
+    foreach (var log in workLogs.OrderBy(x => x.TimeStamp))
     {
-        Console.WriteLine($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
-        Console.WriteLine();
+        var hours = Math.Round(log.Length / 3600m, 2);
+        var type = log.ActivityType?.Name ?? "-";
 
-        var table = TableHelper.NewTable("DATE", "DAY", "HOURS", "ENTRIES");
-
-        foreach (var day in workLogs.GroupBy(x => x.TimeStamp.Date).OrderBy(g => g.Key))
+        if (opts.ShowIds)
         {
-            var dayHours = Math.Round(day.Sum(x => x.Length) / 3600m, 2);
-            var count = day.Count();
             table.AddRow(
-                $"{day.Key:yyyy/MM/dd}",
-                Markup.Escape(day.Key.DayOfWeek.ToString()),
-                $"{dayHours}h",
-                count.ToString());
+                $"{log.TimeStamp:yyyy/MM/dd HH:mm}",
+                Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
+                Markup.Escape(log.WorkItemId.ToString()),
+                $"{hours}h",
+                Markup.Escape(Truncate(type, 22)),
+                Markup.Escape(log.Id ?? "-"));
         }
-
-        AnsiConsole.Write(table);
-    }
-    else
-    {
-        Console.WriteLine($"Time entries from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
-        Console.WriteLine();
-
-        var table = opts.ShowIds
-            ? TableHelper.NewTable("ID", "DATE", "DAY", "WORK ITEM", "HOURS", "TYPE")
-            : TableHelper.NewTable("DATE", "DAY", "WORK ITEM", "HOURS", "TYPE", "COMMENT");
-
-        foreach (var log in workLogs.OrderBy(x => x.TimeStamp))
+        else
         {
-            var hours = Math.Round(log.Length / 3600m, 2);
-            var type = log.ActivityType?.Name ?? "-";
-
-            if (opts.ShowIds)
-            {
-                table.AddRow(
-                    Markup.Escape(log.Id ?? "-"),
-                    $"{log.TimeStamp:yyyy/MM/dd HH:mm}",
-                    Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
-                    Markup.Escape(log.WorkItemId.ToString()),
-                    $"{hours}h",
-                    Markup.Escape(Truncate(type, 22)));
-            }
-            else
-            {
-                var comment = string.IsNullOrEmpty(log.Comment) ? "-" : Truncate(log.Comment, 45);
-                table.AddRow(
-                    $"{log.TimeStamp:yyyy/MM/dd HH:mm}",
-                    Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
-                    Markup.Escape(log.WorkItemId.ToString()),
-                    $"{hours}h",
-                    Markup.Escape(Truncate(type, 22)),
-                    Markup.Escape(comment));
-            }
+            var comment = string.IsNullOrEmpty(log.Comment) ? "-" : Truncate(log.Comment, 45);
+            table.AddRow(
+                $"{log.TimeStamp:yyyy/MM/dd HH:mm}",
+                Markup.Escape(log.TimeStamp.DayOfWeek.ToString()),
+                Markup.Escape(log.WorkItemId.ToString()),
+                $"{hours}h",
+                Markup.Escape(Truncate(type, 22)),
+                Markup.Escape(comment));
         }
-
-        AnsiConsole.Write(table);
     }
+
+    AnsiConsole.Write(table);
 
     Console.WriteLine();
-    Console.WriteLine($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
+    TableHelper.WriteMuted($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
+
+    return 0;
+}
+
+static async Task<int> SummaryAction(SummaryOptions opts, CancellationToken cancellationToken)
+{
+    if (!ConfigService.ConfigExists())
+    {
+        ConsoleHelper.WriteError(ConsoleHelper.ConfigNotFound);
+        return 1;
+    }
+
+    if (!PeriodResolver.TryResolve(opts, out var from, out var to, out var periodError))
+    {
+        ConsoleHelper.WriteError(periodError);
+        return 1;
+    }
+
+    var result = await HttpService.ListWorkLogs(from, to, opts.WorkItemId, cancellationToken);
+    var workLogs = result.Data;
+
+    if (workLogs is null || workLogs.Count == 0)
+    {
+        ConsoleHelper.WriteWarning(ConsoleHelper.NoTimeEntries);
+        return 0;
+    }
+
+    var totalHours = Math.Round(workLogs.Sum(x => x.Length) / 3600m, 2);
+
+    TableHelper.WriteMuted($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
+    Console.WriteLine();
+
+    var table = TableHelper.NewTable("DATE", "WEEKDAY", "HOURS", "ENTRIES");
+
+    foreach (var day in workLogs.GroupBy(x => x.TimeStamp.Date).OrderBy(g => g.Key))
+    {
+        var dayHours = Math.Round(day.Sum(x => x.Length) / 3600m, 2);
+        var count = day.Count();
+        table.AddRow(
+            $"{day.Key:yyyy/MM/dd}",
+            Markup.Escape(day.Key.DayOfWeek.ToString()),
+            $"{dayHours}h",
+            count.ToString());
+    }
+
+    AnsiConsole.Write(table);
+
+    Console.WriteLine();
+    TableHelper.WriteMuted($"Total: {totalHours}h across {workLogs.Count} {(workLogs.Count == 1 ? "entry" : "entries")}.");
 
     return 0;
 }

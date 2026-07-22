@@ -52,6 +52,7 @@ timetracker config -u https://<company>.timehub.7pace.com -t <bearer-token>
 - [activities](#activities)
 - [add](#add)
 - [list](#list)
+- [summary](#summary)
 - [interactive](#interactive)
 - [update](#update)
 - [copy](#copy)
@@ -157,8 +158,7 @@ List time entries for a period.
 | `--last-week` | | no | Entries for the previous week (Mon–Sun) |
 | `--month` | | no | Entries for the current month |
 | `--last-month` | | no | Entries for the previous month |
-| `--summary` | | no | Daily summary instead of individual entries |
-| `--ids` | | no | Show entry IDs instead of comments |
+| `--ids` | | no | Show entry IDs in the last column, in place of comments |
 
 All period shortcuts (`--today`, `--yesterday`, `--week`, `--last-week`, `--month`, `--last-month`) and `--period` are mutually exclusive and cannot be combined with `--from` or `--to`.
 
@@ -184,8 +184,8 @@ timetracker list --last-month
 # Specific date range
 timetracker list -f 2026/06/01 -t 2026/06/30
 
-# Specific month summary by day
-timetracker list --period 2026/06 --summary
+# Specific month
+timetracker list --period 2026/06
 
 # Filter by work item and show IDs (for delete/update)
 timetracker list --week --work-item 12345 --ids
@@ -195,6 +195,41 @@ timetracker list --week --output json > worklogs.json
 
 # Export month as CSV
 timetracker list --month --output csv > worklogs.csv
+```
+
+---
+
+### summary
+
+Show a daily breakdown of logged hours for a period — one row per day with total hours and entry count. Useful for spotting days with missing or incomplete hours.
+
+Accepts the same period options as `list`.
+
+| Option | Short | Required | Description |
+|---|---|---|---|
+| `--from` | `-f` | no | Start date (default: today) |
+| `--to` | `-t` | no | End date (default: today) |
+| `--period` | `-p` | no | Specific month in `YYYY/MM` format |
+| `--work-item` | `-w` | no | Filter by Work Item ID |
+| `--today` | | no | Today |
+| `--yesterday` | | no | Yesterday |
+| `--week` | | no | Current week (Mon–Sun) |
+| `--last-week` | | no | Previous week (Mon–Sun) |
+| `--month` | | no | Current month |
+| `--last-month` | | no | Previous month |
+
+```bash
+# Daily totals for the current week
+timetracker summary --week
+
+# Current month
+timetracker summary --month
+
+# Specific month
+timetracker summary --period 2026/06
+
+# A single work item across the month
+timetracker summary --month --work-item 12345
 ```
 
 ---
@@ -412,20 +447,20 @@ Spot days with incomplete or no hours before the month closes.
 
 ```bash
 # Daily totals for the current week — gaps stand out
-timetracker list --week --summary
+timetracker summary --week
 
 # Same for a specific month
-timetracker list --period 2026/06 --summary
+timetracker summary --period 2026/06
 ```
 
 ### Monthly summary
 
 ```bash
 # Current month
-timetracker list --month --summary
+timetracker summary --month
 
 # Specific month
-timetracker list --period 2026/06 --summary
+timetracker summary --period 2026/06
 ```
 
 ---

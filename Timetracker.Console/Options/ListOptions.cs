@@ -3,7 +3,7 @@ using CommandLine;
 namespace Timetracker.Options;
 
 [Verb("list", HelpText = "List time entries for a given period.")]
-public class ListOptions
+public class ListOptions : IPeriodOptions
 {
     [Option('f', "from", Required = false, HelpText = "Start date in the format YYYY/MM/DD, 'today' or 'yesterday'. Defaults to today.")]
     public string From { get; set; }
@@ -25,9 +25,6 @@ public class ListOptions
 
     [Option('o', "output", Required = false, HelpText = "Output format. Use 'json' to export entries in batch-upload format.")]
     public string Output { get; set; }
-
-    [Option("summary", Required = false, HelpText = "Display a daily summary instead of individual entries.")]
-    public bool Summary { get; set; }
 
     [Option("ids", Required = false, HelpText = "Show entry IDs instead of comments. Useful for identifying entries to delete.")]
     public bool ShowIds { get; set; }
