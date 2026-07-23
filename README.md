@@ -120,7 +120,7 @@ Create a new time entry.
 
 | Option | Short | Required | Description |
 |---|---|---|---|
-| `--date` | `-d` | yes | Date: `YYYY/MM/DD`, `today`, or `yesterday` |
+| `--date` | `-d` | no | Date: `YYYY/MM/DD`, `today`, or `yesterday` (default: today) |
 | `--work-item` | `-w` | yes | Work Item ID |
 | `--length` | `-l` | yes | Duration in hours (e.g. `0.5`, `1.5`) |
 | `--type` | `-t` | yes | Activity type name (see `activities`) |
@@ -129,8 +129,8 @@ Create a new time entry.
 | `--dry-run` | | no | Preview the entry locally without submitting |
 
 ```bash
-# Log 2 hours of development on today
-timetracker add -d today -w 12345 -l 2 -t Development -c "Feature X"
+# Log 2 hours of development today (date defaults to today)
+timetracker add -w 12345 -l 2 -t Development -c "Feature X"
 
 # Log half an hour of a meeting starting at 14:00
 timetracker add -d 2026/06/19 -w 12345 -l 0.5 -t Meeting -h 14:00
