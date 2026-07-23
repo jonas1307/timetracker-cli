@@ -5,7 +5,7 @@ namespace Timetracker.Options;
 [Verb("add", HelpText = "Add a new activity directly to the server.")]
 public class AddOptions
 {
-    [Option('d', "date", Required = true, HelpText = "Specify the date for the activity in the format YYYY/MM/DD (e.g., 2025/12/31).")]
+    [Option('d', "date", Required = false, Default = "today", HelpText = "Date for the activity: YYYY/MM/DD (e.g., 2025/12/31), 'today' or 'yesterday'. Defaults to today.")]
     public string ActivityDate { get; set; }
 
     [Option('w', "work-item", Required = true, HelpText = "Specify the Work Item ID associated with the activity.")]
