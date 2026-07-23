@@ -26,7 +26,7 @@ dotnet tool uninstall -g timetracker-cli
 
 ## Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [.NET 10 Runtime](https://dotnet.microsoft.com/download) (the SDK is only needed to build from source)
 - A 7pace Timetracker instance with a valid Bearer Token
 
 ## Build from source
