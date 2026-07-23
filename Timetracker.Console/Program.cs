@@ -382,21 +382,53 @@ static async Task<int> SummaryAction(SummaryOptions opts, CancellationToken canc
 
     var totalHours = Math.Round(workLogs.Sum(x => x.Length) / 3600m, 2);
 
+    var days = workLogs
+        .GroupBy(x => x.TimeStamp.Date)
+        .OrderBy(g => g.Key)
+        .Select(g => new
+        {
+            Date = g.Key,
+            Hours = Math.Round(g.Sum(x => x.Length) / 3600m, 2),
+            Count = g.Count()
+        })
+        .ToList();
+
+    if (!string.IsNullOrEmpty(opts.Output))
+    {
+        switch (opts.Output.ToLowerInvariant())
+        {
+            case "json":
+                var payload = days.Select(d => new
+                {
+                    date = d.Date.ToString("yyyy/MM/dd"),
+                    weekday = d.Date.DayOfWeek.ToString(),
+                    hours = d.Hours,
+                    entries = d.Count
+                });
+                Console.WriteLine(JsonConvert.SerializeObject(payload, Formatting.Indented));
+                return 0;
+            case "csv":
+                Console.WriteLine("date,weekday,hours,entries");
+                foreach (var d in days)
+                    Console.WriteLine($"{d.Date:yyyy/MM/dd},{d.Date.DayOfWeek},{d.Hours},{d.Count}");
+                return 0;
+            default:
+                ConsoleHelper.WriteError($"Unknown output format '{opts.Output}'. Use 'json' or 'csv'.");
+                return 1;
+        }
+    }
+
     TableHelper.WriteMuted($"Summary from {from:yyyy/MM/dd} to {to:yyyy/MM/dd}:");
     Console.WriteLine();
 
     var table = TableHelper.NewTable("DATE", "WEEKDAY", "HOURS", "ENTRIES");
 
-    foreach (var day in workLogs.GroupBy(x => x.TimeStamp.Date).OrderBy(g => g.Key))
-    {
-        var dayHours = Math.Round(day.Sum(x => x.Length) / 3600m, 2);
-        var count = day.Count();
+    foreach (var d in days)
         table.AddRow(
-            $"{day.Key:yyyy/MM/dd}",
-            Markup.Escape(day.Key.DayOfWeek.ToString()),
-            $"{dayHours}h",
-            count.ToString());
-    }
+            $"{d.Date:yyyy/MM/dd}",
+            Markup.Escape(d.Date.DayOfWeek.ToString()),
+            $"{d.Hours}h",
+            d.Count.ToString());
 
     AnsiConsole.Write(table);
 

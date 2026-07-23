@@ -211,6 +211,7 @@ Accepts the same period options as `list`.
 | `--to` | `-t` | no | End date (default: today) |
 | `--period` | `-p` | no | Specific month in `YYYY/MM` format |
 | `--work-item` | `-w` | no | Filter by Work Item ID |
+| `--output` | `-o` | no | Output format: `json` or `csv`. Defaults to a table |
 | `--today` | | no | Today |
 | `--yesterday` | | no | Yesterday |
 | `--week` | | no | Current week (Mon–Sun) |
@@ -221,6 +222,9 @@ Accepts the same period options as `list`.
 ```bash
 # Daily totals for the current week
 timetracker summary --week
+
+# Export the monthly breakdown as CSV
+timetracker summary --month --output csv > breakdown.csv
 
 # Current month
 timetracker summary --month

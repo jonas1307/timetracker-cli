@@ -34,4 +34,7 @@ public class SummaryOptions : IPeriodOptions
 
     [Option('w', "work-item", Required = false, HelpText = "Filter entries by Work Item ID.")]
     public int? WorkItemId { get; set; }
+
+    [Option('o', "output", Required = false, HelpText = "Output format: 'json' or 'csv'. Defaults to a table.")]
+    public string Output { get; set; }
 }
