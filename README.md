@@ -4,7 +4,7 @@ A .NET 10 command-line tool for logging and managing time entries in [7pace Time
 
 ## Installation
 
-Requires [.NET 10 SDK or Runtime](https://dotnet.microsoft.com/download).
+Requires the [.NET 10 Runtime](https://dotnet.microsoft.com/download) (the SDK is only needed to build from source).
 
 ```bash
 dotnet tool install -g timetracker-cli
