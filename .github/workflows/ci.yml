@@ -18,7 +18,7 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Build solution
-        run: dotnet build Timetracker.sln -c Release
+        run: dotnet build Timetracker.slnx -c Release
 
       - name: Pack (validate packaging)
-        run: dotnet pack Timetracker.Console -c Release -o ./nupkg
+        run: dotnet pack Timetracker -c Release -o ./nupkg

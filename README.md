@@ -32,8 +32,8 @@ dotnet tool uninstall -g timetracker-cli
 ## Build from source
 
 ```bash
-dotnet build Timetracker.Console
-dotnet publish Timetracker.Console -c Release
+dotnet build Timetracker
+dotnet publish Timetracker -c Release
 ```
 
 ## First-time setup

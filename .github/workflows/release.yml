@@ -26,7 +26,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Pack
-        run: dotnet pack Timetracker.Console -c Release /p:Version=${{ steps.version.outputs.VERSION }} -o ./nupkg
+        run: dotnet pack Timetracker -c Release /p:Version=${{ steps.version.outputs.VERSION }} -o ./nupkg
 
       - name: NuGet login (OIDC)
         uses: NuGet/login@v1
