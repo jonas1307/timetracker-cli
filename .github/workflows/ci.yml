@@ -20,5 +20,8 @@ jobs:
       - name: Build solution
         run: dotnet build Timetracker.slnx -c Release
 
+      - name: Test
+        run: dotnet test Timetracker.slnx -c Release --no-build
+
       - name: Pack (validate packaging)
         run: dotnet pack Timetracker -c Release -o ./nupkg
