@@ -216,6 +216,9 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
 
     var activities = ActivityService.GetActivities();
 
+    if (opts.Interactive)
+        PromptAddFields(opts, activities);
+
     var validator = new AddValidator(activities.Select(x => x.Name.ToUpper()));
 
     var result = validator.Validate(opts);
@@ -252,6 +255,45 @@ static async Task<int> AddActions(AddOptions opts, CancellationToken cancellatio
     ConsoleHelper.WriteSuccess($"Time entry created (ID: {createdId})");
 
     return 0;
+}
+
+// Fills the add options from interactive prompts, mirroring the "New entry" flow of the
+// interactive command. Values still pass through AddValidator afterwards.
+static void PromptAddFields(AddOptions opts, IList<Activity> activities)
+{
+    AnsiConsole.MarkupLine("[grey]Fill in the entry (press Enter to accept defaults):[/]");
+
+    opts.ActivityDate = AnsiConsole.Prompt(
+        new TextPrompt<string>("Date (YYYY/MM/DD, 'today' or 'yesterday'):")
+            .DefaultValue(string.IsNullOrEmpty(opts.ActivityDate) ? "today" : opts.ActivityDate));
+
+    opts.ActivityStartHour = AnsiConsole.Prompt(
+        new TextPrompt<string>("Start hour (HH:MM):")
+            .DefaultValue(string.IsNullOrEmpty(opts.ActivityStartHour) ? "09:00" : opts.ActivityStartHour));
+
+    opts.WorkItemId = AnsiConsole.Prompt(
+        new TextPrompt<int>("Work Item ID:")
+            .Validate(id => id > 0 ? ValidationResult.Success() : ValidationResult.Error("Work Item ID must be greater than 0.")));
+
+    var hoursStr = AnsiConsole.Prompt(
+        new TextPrompt<string>("Duration in hours (e.g. 1 or 1.5):")
+            .Validate(v => decimal.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var h) && h > 0
+                ? ValidationResult.Success()
+                : ValidationResult.Error("Enter a number greater than 0, e.g. 1 or 1.5")));
+    opts.ActivityLength = decimal.Parse(hoursStr, System.Globalization.CultureInfo.InvariantCulture);
+
+    var activity = AnsiConsole.Prompt(
+        new SelectionPrompt<Activity>()
+            .Title("Activity type:")
+            .UseConverter(a => Markup.Escape(a.Name))
+            .AddChoices(activities));
+    opts.ActivityType = activity.Name;
+
+    var comment = AnsiConsole.Prompt(
+        new TextPrompt<string>("Comment:")
+            .AllowEmpty()
+            .DefaultValue(opts.ActivityComment ?? string.Empty));
+    opts.ActivityComment = string.IsNullOrEmpty(comment) ? null : comment;
 }
 
 static async Task<int> ListActions(ListOptions opts, CancellationToken cancellationToken)

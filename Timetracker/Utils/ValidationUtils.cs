@@ -24,7 +24,8 @@ public static class ValidationUtils
         return Regex.IsMatch(date, @"^\d{4}/\d{2}/\d{2}$") && ValidDate(date);
     }
 
-    public static bool ValidType(IEnumerable<string> activities, string type) => activities.Contains(type.ToUpper());
+    public static bool ValidType(IEnumerable<string> activities, string type) =>
+        !string.IsNullOrEmpty(type) && activities.Contains(type.ToUpper());
 
     public static bool ValidUrl(string url) =>
         Uri.TryCreate(url, UriKind.Absolute, out var uri) &&

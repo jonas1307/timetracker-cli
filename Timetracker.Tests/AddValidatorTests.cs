@@ -66,6 +66,17 @@ public class AddValidatorTests
         Assert.False(new AddValidator(Activities).Validate(opts).IsValid);
     }
 
+    [Fact]
+    public void MissingActivityType_Fails()
+    {
+        // With --type no longer required by the parser, the validator must reject a null type
+        // instead of throwing (the flag-less path relies on this).
+        var opts = ValidOptions();
+        opts.ActivityType = null;
+
+        Assert.False(new AddValidator(Activities).Validate(opts).IsValid);
+    }
+
     [Theory]
     [InlineData("24:00")]
     [InlineData("9:60")]

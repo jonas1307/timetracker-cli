@@ -50,6 +50,8 @@ public class ValidationUtilsTests
     [InlineData("Development", true)]
     [InlineData("DEVELOPMENT", true)]
     [InlineData("meeting", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]          // null is not a valid type (guards the flag-less flow)
     public void ValidType_IsCaseInsensitiveAndUpperCases(string input, bool expected)
     {
         var activities = new[] { "DEVELOPMENT", "TESTING" };
