@@ -11,6 +11,12 @@ namespace Timetracker.Services
     {
         private const string TIMETRACKER_API_VERSION = "3.2";
 
+        /// <summary>
+        /// Builds the REST client for a base URL. Defaults to a real <see cref="RestClient"/>;
+        /// tests swap it for a client wired to a stub message handler to avoid real network calls.
+        /// </summary>
+        internal static Func<string, RestClient> ClientFactory { get; set; } = url => new RestClient(url);
+
         public static async Task<string> RegisterActivity(AddOptions options, string activityId, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
@@ -32,7 +38,7 @@ namespace Timetracker.Services
         public static async Task<List<WorkLog>> ImportWorkLogs(IEnumerable<TimetrackerWorklogRequest> worklogs, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
-            using var client = new RestClient(config.TimetrackerUrl);
+            using var client = ClientFactory(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/workLogs/batch?api-version={TIMETRACKER_API_VERSION}", Method.Post);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
@@ -49,7 +55,7 @@ namespace Timetracker.Services
         public static async Task<string> PostWorkLog(TimetrackerWorklogRequest worklog, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
-            using var client = new RestClient(config.TimetrackerUrl);
+            using var client = ClientFactory(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/workLogs?api-version={TIMETRACKER_API_VERSION}", Method.Post);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
@@ -66,7 +72,7 @@ namespace Timetracker.Services
         public static async Task<TimetrackerResponse<ActivityTypeResponse>> ListActivityTypes(CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
-            using var client = new RestClient(config.TimetrackerUrl);
+            using var client = ClientFactory(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/activityTypes?api-version={TIMETRACKER_API_VERSION}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
@@ -84,7 +90,7 @@ namespace Timetracker.Services
         public static async Task<TimetrackerResponse<List<WorkLog>>> ListWorkLogs(DateTime from, DateTime to, int? workItemId = null, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
-            using var client = new RestClient(config.TimetrackerUrl);
+            using var client = ClientFactory(config.TimetrackerUrl);
             var request = new RestRequest($"/api/rest/workLogs?api-version={TIMETRACKER_API_VERSION}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
             request.AddQueryParameter("$fromTimestamp", from.ToString("yyyy-MM-ddT00:00:00"));
@@ -106,7 +112,7 @@ namespace Timetracker.Services
         public static async Task<WorkLog> GetWorkLog(string workLogId, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
-            using var client = new RestClient(config.TimetrackerUrl);
+            using var client = ClientFactory(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/workLogs/{workLogId}?api-version={TIMETRACKER_API_VERSION}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
@@ -122,7 +128,7 @@ namespace Timetracker.Services
         public static async Task UpdateWorkLog(string workLogId, TimetrackerWorklogRequest worklog, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
-            using var client = new RestClient(config.TimetrackerUrl);
+            using var client = ClientFactory(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/workLogs/{workLogId}?api-version={TIMETRACKER_API_VERSION}", Method.Patch);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
@@ -137,7 +143,7 @@ namespace Timetracker.Services
         public static async Task DeleteWorkLog(string workLogId, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.LoadConfig();
-            using var client = new RestClient(config.TimetrackerUrl);
+            using var client = ClientFactory(config.TimetrackerUrl);
 
             var request = new RestRequest($"/api/rest/workLogs/{workLogId}?api-version={TIMETRACKER_API_VERSION}", Method.Delete);
             request.AddHeader("Authorization", $"Bearer {config.TimetrackerBearerToken}");
@@ -152,7 +158,7 @@ namespace Timetracker.Services
 
         public static async Task<TimetrackerResponse<TimetrackerUserResponse>> GetTimetrackerUser(string timetrackerUrl, string timetrackerBearerToken, CancellationToken cancellationToken = default)
         {
-            using var client = new RestClient(timetrackerUrl);
+            using var client = ClientFactory(timetrackerUrl);
 
             var request = new RestRequest($"/api/rest/me?api-version={TIMETRACKER_API_VERSION}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {timetrackerBearerToken}");
