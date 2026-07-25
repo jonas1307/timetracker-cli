@@ -121,12 +121,15 @@ Create a new time entry.
 | Option | Short | Required | Description |
 |---|---|---|---|
 | `--date` | `-d` | no | Date: `YYYY/MM/DD`, `today`, or `yesterday` (default: today) |
-| `--work-item` | `-w` | yes | Work Item ID |
-| `--length` | `-l` | yes | Duration in hours (e.g. `0.5`, `1.5`) |
-| `--type` | `-t` | yes | Activity type name (see `activities`) |
+| `--work-item` | `-w` | yes* | Work Item ID |
+| `--length` | `-l` | yes* | Duration in hours (e.g. `0.5`, `1.5`) |
+| `--type` | `-t` | yes* | Activity type name (see `activities`) |
 | `--comment` | `-c` | no | Comment for the entry |
 | `--hour` | `-h` | no | Start time in `HH:MM` format (default: `09:00`) |
+| `--interactive` | `-i` | no | Prompt for each field instead of passing flags |
 | `--dry-run` | | no | Preview the entry locally without submitting |
+
+*Required in the flag-based flow; supplied through prompts when `--interactive` is used.
 
 ```bash
 # Log 2 hours of development today (date defaults to today)
@@ -135,9 +138,14 @@ timetracker add -w 12345 -l 2 -t Development -c "Feature X"
 # Log half an hour of a meeting starting at 14:00
 timetracker add -d 2026/06/19 -w 12345 -l 0.5 -t Meeting -h 14:00
 
+# Guided mode — prompts for date, hour, work item, duration, type, and comment
+timetracker add --interactive
+
 # Preview before submitting
 timetracker add -d today -w 12345 -l 1 -t Development --dry-run
 ```
+
+In `--interactive` mode, date and start hour default to today and `09:00`, the activity type is picked from a list, and the comment is optional. The collected values still pass through the same validation as the flag-based flow.
 
 ---
 

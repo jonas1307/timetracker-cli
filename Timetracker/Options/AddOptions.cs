@@ -8,13 +8,15 @@ public class AddOptions
     [Option('d', "date", Required = false, Default = "today", HelpText = "Date for the activity: YYYY/MM/DD (e.g., 2025/12/31), 'today' or 'yesterday'. Defaults to today.")]
     public string ActivityDate { get; set; }
 
-    [Option('w', "work-item", Required = true, HelpText = "Specify the Work Item ID associated with the activity.")]
+    // Required for the flag-based flow, but not enforced by the parser so `--interactive`
+    // can supply them via prompts. Presence is validated by AddValidator.
+    [Option('w', "work-item", Required = false, HelpText = "Specify the Work Item ID associated with the activity.")]
     public int WorkItemId { get; set; }
 
-    [Option('l', "length", Required = true, HelpText = "Specify the duration of the activity in hours (e.g., 0.5 for half an hour).")]
+    [Option('l', "length", Required = false, HelpText = "Specify the duration of the activity in hours (e.g., 0.5 for half an hour).")]
     public decimal ActivityLength { get; set; }
 
-    [Option('t', "type", Required = true, HelpText = "Specify the type of activity. Use the 'activities' command to list available types.")]
+    [Option('t', "type", Required = false, HelpText = "Specify the type of activity. Use the 'activities' command to list available types.")]
     public string ActivityType { get; set; }
 
     [Option('c', "comment", Required = false, HelpText = "Provide a comment for the activity.")]
@@ -22,6 +24,9 @@ public class AddOptions
 
     [Option('h', "hour", Required = false, HelpText = "Specify the start time of the activity in the format HH:MM (e.g., 09:00 or 21:00)", Default = "09:00")]
     public string ActivityStartHour { get; set; }
+
+    [Option('i', "interactive", Required = false, HelpText = "Prompt for each field instead of passing flags.")]
+    public bool Interactive { get; set; }
 
     [Option("dry-run", Required = false, HelpText = "Preview the entry that would be submitted without sending it to the server.")]
     public bool DryRun { get; set; }
