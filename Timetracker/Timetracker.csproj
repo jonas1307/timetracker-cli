@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Timetracker.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
