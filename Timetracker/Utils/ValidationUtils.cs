@@ -5,6 +5,14 @@ namespace Timetracker.Utils;
 
 public static class ValidationUtils
 {
+    /// <summary>
+    /// Clock used by the date-resolving helpers. Defaults to the system clock; tests can
+    /// swap it for a fixed provider to assert absolute week/month ranges deterministically.
+    /// </summary>
+    internal static TimeProvider Clock { get; set; } = TimeProvider.System;
+
+    private static DateTime Today => Clock.GetLocalNow().Date;
+
     public static bool ValidDate(string date) => DateTime.TryParse(date, out _);
 
     public static bool ValidActivityDate(string date)
@@ -25,17 +33,17 @@ public static class ValidationUtils
     public static DateTime ResolveDate(string input)
     {
         if (string.IsNullOrEmpty(input) || input.Equals("today", StringComparison.OrdinalIgnoreCase))
-            return DateTime.Today;
+            return Today;
 
         if (input.Equals("yesterday", StringComparison.OrdinalIgnoreCase))
-            return DateTime.Today.AddDays(-1);
+            return Today.AddDays(-1);
 
         return DateTime.Parse(input);
     }
 
     public static (DateTime From, DateTime To) ResolveCurrentWeek()
     {
-        var today = DateTime.Today;
+        var today = Today;
         var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
         var monday = today.AddDays(-diff);
         return (monday, monday.AddDays(6));
@@ -50,14 +58,14 @@ public static class ValidationUtils
 
     public static (DateTime From, DateTime To) ResolveCurrentMonth()
     {
-        var today = DateTime.Today;
+        var today = Today;
         var firstDay = new DateTime(today.Year, today.Month, 1);
         return (firstDay, firstDay.AddMonths(1).AddDays(-1));
     }
 
     public static (DateTime From, DateTime To) ResolveLastMonth()
     {
-        var today = DateTime.Today;
+        var today = Today;
         var firstDay = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
         return (firstDay, firstDay.AddMonths(1).AddDays(-1));
     }

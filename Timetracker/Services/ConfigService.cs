@@ -24,11 +24,19 @@ public static class ConfigService
     private const string APPLICATION_NAME = "Timetracker.Console";
     private const string JSON_FILE_NAME = "config.json";
 
+    // Overrides the config directory when set (used by tests to avoid touching the real
+    // user store). Not documented as a public feature; the runtime path is unchanged.
+    private const string CONFIG_DIR_ENV = "TIMETRACKER_CONFIG_DIR";
+
     private static string GetConfigPath()
     {
-        var folderPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), APPLICATION_NAME)
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", APPLICATION_NAME);
+        var overrideDir = Environment.GetEnvironmentVariable(CONFIG_DIR_ENV);
+
+        var folderPath = !string.IsNullOrEmpty(overrideDir)
+            ? overrideDir
+            : RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), APPLICATION_NAME)
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", APPLICATION_NAME);
 
         return Path.Combine(folderPath, JSON_FILE_NAME);
     }
