@@ -70,6 +70,7 @@ Configure the connection to your Timetracker instance.
 | `--url` | `-u` | yes* | Base URL of your Timetracker instance |
 | `--token` | `-t` | yes* | Bearer token for authentication |
 | `--border` | | no | Table border style for list output: `minimal` (default), `square`, or `markdown` |
+| `--week-start` | | no | First day of the week for `--week`/`--last-week`: `sunday` (default) or `monday` |
 | `--show` | | no | Display current config (token masked) |
 | `--reset` | | no | Delete all local config and activity cache |
 
@@ -89,6 +90,10 @@ timetracker config -t eyJnew...
 
 # Change the list table border (no network call, credentials untouched)
 timetracker config --border square
+
+# Set week start to Sunday (default) or Monday
+timetracker config --week-start sunday
+timetracker config --week-start monday
 
 # Remove all local config
 timetracker config --reset

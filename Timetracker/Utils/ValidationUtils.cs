@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
+using Timetracker.Services;
 
 namespace Timetracker.Utils;
 
@@ -10,6 +11,13 @@ public static class ValidationUtils
     /// swap it for a fixed provider to assert absolute week/month ranges deterministically.
     /// </summary>
     internal static TimeProvider Clock { get; set; } = TimeProvider.System;
+
+    /// <summary>
+    /// First day of the week. Defaults to reading from config; tests can override directly.
+    /// </summary>
+    internal static DayOfWeek? WeekStartOverride { get; set; }
+
+    private static DayOfWeek WeekStart => WeekStartOverride ?? ConfigService.GetWeekStart();
 
     private static DateTime Today => Clock.GetLocalNow().Date;
 
@@ -45,9 +53,10 @@ public static class ValidationUtils
     public static (DateTime From, DateTime To) ResolveCurrentWeek()
     {
         var today = Today;
-        var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
-        var monday = today.AddDays(-diff);
-        return (monday, monday.AddDays(6));
+        var start = WeekStart;
+        var diff = (7 + (today.DayOfWeek - start)) % 7;
+        var weekStart = today.AddDays(-diff);
+        return (weekStart, weekStart.AddDays(6));
     }
 
     public static (DateTime From, DateTime To) ResolveLastWeek()

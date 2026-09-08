@@ -2,8 +2,9 @@ using Timetracker.Utils;
 
 namespace Timetracker.Tests;
 
-public class PeriodResolverTests
+public class PeriodResolverTests : IDisposable
 {
+    public void Dispose() => ValidationUtils.WeekStartOverride = null;
     // --- Error paths -------------------------------------------------------
 
     [Fact]
@@ -137,6 +138,8 @@ public class PeriodResolverTests
     [Fact]
     public void Week_IsMondayToSunday()
     {
+        ValidationUtils.WeekStartOverride = DayOfWeek.Monday;
+
         var ok = PeriodResolver.TryResolve(new FakePeriodOptions { Week = true }, out var from, out var to, out _);
 
         Assert.True(ok);
@@ -148,6 +151,8 @@ public class PeriodResolverTests
     [Fact]
     public void LastWeek_IsExactlySevenDaysBeforeThisWeek()
     {
+        ValidationUtils.WeekStartOverride = DayOfWeek.Monday;
+
         PeriodResolver.TryResolve(new FakePeriodOptions { Week = true }, out var weekFrom, out var weekTo, out _);
         PeriodResolver.TryResolve(new FakePeriodOptions { LastWeek = true }, out var lastFrom, out var lastTo, out _);
 

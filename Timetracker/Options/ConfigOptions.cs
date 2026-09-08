@@ -19,4 +19,7 @@ public class ConfigOptions
 
     [Option("border", Required = false, HelpText = "Table border style for list output: minimal (default), square, or markdown.")]
     public string Border { get; set; }
+
+    [Option("week-start", Required = false, HelpText = "First day of the week for --week and --last-week shortcuts: sunday (default) or monday.")]
+    public string WeekStart { get; set; }
 }

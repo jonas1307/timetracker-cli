@@ -91,7 +91,8 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         Console.WriteLine($"URL:    {config.TimetrackerUrl}");
         Console.WriteLine($"Token:  {maskedToken}");
         Console.WriteLine($"UserId: {config.TimetrackerUserId}");
-        Console.WriteLine($"Border: {config.TableBorder ?? "minimal"}");
+        Console.WriteLine($"Border:     {config.TableBorder ?? "minimal"}");
+        Console.WriteLine($"Week start: {config.WeekStart ?? "sunday"}");
 
         return 0;
     }
@@ -129,9 +130,13 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         // Partial update (e.g. only --border): merge into the existing config, no network call.
         ConfigService.SaveConfig(opts);
 
-        ConsoleHelper.WriteSuccess(!string.IsNullOrEmpty(opts.Border)
-            ? $"Table border set to '{opts.Border.ToLowerInvariant()}'."
-            : "Configuration updated.");
+        var message = (!string.IsNullOrEmpty(opts.Border), !string.IsNullOrEmpty(opts.WeekStart)) switch
+        {
+            (true, _)  => $"Table border set to '{opts.Border.ToLowerInvariant()}'.",
+            (_, true)  => $"Week start set to '{opts.WeekStart.ToLowerInvariant()}'.",
+            _          => "Configuration updated."
+        };
+        ConsoleHelper.WriteSuccess(message);
 
         return 0;
     }
