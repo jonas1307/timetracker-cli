@@ -5,10 +5,10 @@ namespace Timetracker.Options;
 [Verb("summary", HelpText = "Show a daily summary of logged hours for a given period.")]
 public class SummaryOptions : IPeriodOptions
 {
-    [Option('f', "from", Required = false, HelpText = "Start date in the format YYYY/MM/DD, 'today' or 'yesterday'. Defaults to today.")]
+    [Option('f', "from", Required = false, HelpText = "Start date in the format YYYY/MM/DD, 'today' or 'yesterday'. Defaults to the start of the current month.")]
     public string From { get; set; }
 
-    [Option('t', "to", Required = false, HelpText = "End date in the format YYYY/MM/DD, 'today' or 'yesterday'. Defaults to today.")]
+    [Option('t', "to", Required = false, HelpText = "End date in the format YYYY/MM/DD, 'today' or 'yesterday'. Defaults to the end of the current month.")]
     public string To { get; set; }
 
     [Option('p', "period", Required = false, HelpText = "Summarize a specific month in the format YYYY/MM (e.g., 2026/06). Cannot be used with --from, --to or week/month shortcuts.")]
@@ -16,6 +16,9 @@ public class SummaryOptions : IPeriodOptions
 
     [Option("month", Required = false, HelpText = "Summarize the current month. Cannot be used with --from, --to, --period or other shortcuts.")]
     public bool Month { get; set; }
+
+    [Option("current-month", Required = false, HelpText = "Alias for --month. Summarize the current month.")]
+    public bool CurrentMonth { get; set; }
 
     [Option("last-month", Required = false, HelpText = "Summarize the previous month. Cannot be used with --from, --to, --period or other shortcuts.")]
     public bool LastMonth { get; set; }
@@ -28,6 +31,9 @@ public class SummaryOptions : IPeriodOptions
 
     [Option("week", Required = false, HelpText = "Summarize the current week (Monday to Sunday). Cannot be used with --from, --to or --period.")]
     public bool Week { get; set; }
+
+    [Option("current-week", Required = false, HelpText = "Alias for --week. Summarize the current week (Monday to Sunday).")]
+    public bool CurrentWeek { get; set; }
 
     [Option("last-week", Required = false, HelpText = "Summarize the previous week (Monday to Sunday). Cannot be used with --from, --to or --period.")]
     public bool LastWeek { get; set; }

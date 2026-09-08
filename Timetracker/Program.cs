@@ -407,6 +407,16 @@ static async Task<int> SummaryAction(SummaryOptions opts, CancellationToken canc
         return 1;
     }
 
+    var noPeriodSpecified = !opts.Today && !opts.Yesterday
+        && !opts.Week && !opts.CurrentWeek && !opts.LastWeek
+        && !opts.Month && !opts.CurrentMonth && !opts.LastMonth
+        && string.IsNullOrEmpty(opts.Period)
+        && string.IsNullOrEmpty(opts.From)
+        && string.IsNullOrEmpty(opts.To);
+
+    if (noPeriodSpecified)
+        opts.Month = true;
+
     if (!PeriodResolver.TryResolve(opts, out var from, out var to, out var periodError))
     {
         ConsoleHelper.WriteError(periodError);
