@@ -14,7 +14,8 @@ public static class PeriodResolver
 
         var periodFlags = new[]
         {
-            opts.Today, opts.Yesterday, opts.Week, opts.LastWeek, opts.Month, opts.LastMonth,
+            opts.Today, opts.Yesterday, opts.Week, opts.CurrentWeek, opts.LastWeek,
+            opts.Month, opts.CurrentMonth, opts.LastMonth,
             !string.IsNullOrEmpty(opts.Period)
         }.Count(x => x);
 
@@ -24,7 +25,9 @@ public static class PeriodResolver
             return false;
         }
 
-        var usesShortcut = opts.Today || opts.Yesterday || opts.Week || opts.LastWeek || opts.Month || opts.LastMonth;
+        var usesShortcut = opts.Today || opts.Yesterday
+            || opts.Week || opts.CurrentWeek || opts.LastWeek
+            || opts.Month || opts.CurrentMonth || opts.LastMonth;
 
         if (usesShortcut && (!string.IsNullOrEmpty(opts.From) || !string.IsNullOrEmpty(opts.To)))
         {
@@ -44,7 +47,7 @@ public static class PeriodResolver
             return true;
         }
 
-        if (opts.Week)
+        if (opts.Week || opts.CurrentWeek)
         {
             (from, to) = ValidationUtils.ResolveCurrentWeek();
             return true;
@@ -56,7 +59,7 @@ public static class PeriodResolver
             return true;
         }
 
-        if (opts.Month)
+        if (opts.Month || opts.CurrentMonth)
         {
             (from, to) = ValidationUtils.ResolveCurrentMonth();
             return true;

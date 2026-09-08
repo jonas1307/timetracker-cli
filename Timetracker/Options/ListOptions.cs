@@ -17,6 +17,9 @@ public class ListOptions : IPeriodOptions
     [Option("month", Required = false, HelpText = "Show entries for the current month. Cannot be used with --from, --to, --period or other shortcuts.")]
     public bool Month { get; set; }
 
+    [Option("current-month", Required = false, HelpText = "Alias for --month. Show entries for the current month.")]
+    public bool CurrentMonth { get; set; }
+
     [Option("last-month", Required = false, HelpText = "Show entries for the previous month. Cannot be used with --from, --to, --period or other shortcuts.")]
     public bool LastMonth { get; set; }
 
@@ -37,6 +40,9 @@ public class ListOptions : IPeriodOptions
 
     [Option("week", Required = false, HelpText = "Show entries for the current week (Monday to Sunday). Cannot be used with --from, --to or --period.")]
     public bool Week { get; set; }
+
+    [Option("current-week", Required = false, HelpText = "Alias for --week. Show entries for the current week (Monday to Sunday).")]
+    public bool CurrentWeek { get; set; }
 
     [Option("last-week", Required = false, HelpText = "Show entries for the previous week (Monday to Sunday). Cannot be used with --from, --to or --period.")]
     public bool LastWeek { get; set; }

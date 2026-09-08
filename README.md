@@ -162,13 +162,13 @@ List time entries for a period.
 | `--output` | `-o` | no | Output format: `json` (batch-upload compatible) or `csv` |
 | `--today` | | no | Shortcut for today's entries |
 | `--yesterday` | | no | Shortcut for yesterday's entries |
-| `--week` | | no | Entries for the current week (Mon–Sun) |
+| `--week` / `--current-week` | | no | Entries for the current week (Mon–Sun) |
 | `--last-week` | | no | Entries for the previous week (Mon–Sun) |
-| `--month` | | no | Entries for the current month |
+| `--month` / `--current-month` | | no | Entries for the current month |
 | `--last-month` | | no | Entries for the previous month |
 | `--ids` | | no | Show entry IDs in the last column, in place of comments |
 
-All period shortcuts (`--today`, `--yesterday`, `--week`, `--last-week`, `--month`, `--last-month`) and `--period` are mutually exclusive and cannot be combined with `--from` or `--to`.
+All period shortcuts (`--today`, `--yesterday`, `--week`, `--current-week`, `--last-week`, `--month`, `--current-month`, `--last-month`) and `--period` are mutually exclusive and cannot be combined with `--from` or `--to`.
 
 ```bash
 # Today's entries
@@ -222,9 +222,9 @@ Accepts the same period options as `list`.
 | `--output` | `-o` | no | Output format: `json` or `csv`. Defaults to a table |
 | `--today` | | no | Today |
 | `--yesterday` | | no | Yesterday |
-| `--week` | | no | Current week (Mon–Sun) |
+| `--week` / `--current-week` | | no | Current week (Mon–Sun) |
 | `--last-week` | | no | Previous week (Mon–Sun) |
-| `--month` | | no | Current month |
+| `--month` / `--current-month` | | no | Current month (default when no period is given) |
 | `--last-month` | | no | Previous month |
 
 ```bash
@@ -256,9 +256,9 @@ Browse, create, copy, edit and delete time entries in an interactive terminal UI
 | `--work-item` | `-w` | no | Filter by Work Item ID |
 | `--today` | | no | Entries for today (default) |
 | `--yesterday` | | no | Entries for yesterday |
-| `--week` | | no | Entries for the current week |
+| `--week` / `--current-week` | | no | Entries for the current week |
 | `--last-week` | | no | Entries for the previous week |
-| `--month` | | no | Entries for the current month |
+| `--month` / `--current-month` | | no | Entries for the current month |
 | `--last-month` | | no | Entries for the previous month |
 
 ```bash

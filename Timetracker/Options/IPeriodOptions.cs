@@ -13,5 +13,7 @@ public interface IPeriodOptions
     bool Week { get; }
     bool LastWeek { get; }
     bool Month { get; }
+    bool CurrentMonth { get; }
     bool LastMonth { get; }
+    bool CurrentWeek { get; }
 }

@@ -176,4 +176,72 @@ public class PeriodResolverTests
         Assert.Equal(from.AddMonths(1).AddDays(-1), to);
         Assert.Equal(DateTime.Today.Month, from.AddMonths(1).Month);
     }
+
+    // --- current-* aliases -------------------------------------------------
+
+    [Fact]
+    public void CurrentMonth_ResolvesIdenticallyToMonth()
+    {
+        PeriodResolver.TryResolve(new FakePeriodOptions { Month = true }, out var mFrom, out var mTo, out _);
+        var ok = PeriodResolver.TryResolve(new FakePeriodOptions { CurrentMonth = true }, out var from, out var to, out _);
+
+        Assert.True(ok);
+        Assert.Equal(mFrom, from);
+        Assert.Equal(mTo, to);
+    }
+
+    [Fact]
+    public void CurrentWeek_ResolvesIdenticallyToWeek()
+    {
+        PeriodResolver.TryResolve(new FakePeriodOptions { Week = true }, out var wFrom, out var wTo, out _);
+        var ok = PeriodResolver.TryResolve(new FakePeriodOptions { CurrentWeek = true }, out var from, out var to, out _);
+
+        Assert.True(ok);
+        Assert.Equal(wFrom, from);
+        Assert.Equal(wTo, to);
+    }
+
+    [Fact]
+    public void CurrentMonth_AndMonth_AreMutuallyExclusive()
+    {
+        var opts = new FakePeriodOptions { Month = true, CurrentMonth = true };
+
+        var ok = PeriodResolver.TryResolve(opts, out _, out _, out var error);
+
+        Assert.False(ok);
+        Assert.Contains("mutually exclusive", error);
+    }
+
+    [Fact]
+    public void CurrentWeek_AndWeek_AreMutuallyExclusive()
+    {
+        var opts = new FakePeriodOptions { Week = true, CurrentWeek = true };
+
+        var ok = PeriodResolver.TryResolve(opts, out _, out _, out var error);
+
+        Assert.False(ok);
+        Assert.Contains("mutually exclusive", error);
+    }
+
+    [Fact]
+    public void CurrentMonth_WithFromOrTo_Fail()
+    {
+        var opts = new FakePeriodOptions { CurrentMonth = true, From = "2026/06/01" };
+
+        var ok = PeriodResolver.TryResolve(opts, out _, out _, out var error);
+
+        Assert.False(ok);
+        Assert.Contains("shortcuts cannot be used", error);
+    }
+
+    [Fact]
+    public void CurrentWeek_WithFromOrTo_Fail()
+    {
+        var opts = new FakePeriodOptions { CurrentWeek = true, To = "2026/06/30" };
+
+        var ok = PeriodResolver.TryResolve(opts, out _, out _, out var error);
+
+        Assert.False(ok);
+        Assert.Contains("shortcuts cannot be used", error);
+    }
 }
