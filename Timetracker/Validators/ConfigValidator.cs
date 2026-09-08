@@ -38,8 +38,8 @@ public class ConfigValidator : AbstractValidator<ConfigOptions>
         When(x => !string.IsNullOrEmpty(x.Border), () =>
         {
             RuleFor(x => x.Border)
-                .Must(b => b.ToLowerInvariant() is "minimal" or "square" or "markdown")
-                .WithMessage("--border must be one of: minimal, square, markdown.");
+                .Must(b => b.ToLowerInvariant() is "minimal" or "square" or "markdown" or "ascii")
+                .WithMessage("--border must be one of: minimal, square, markdown, ascii.");
         });
 
         When(x => !string.IsNullOrEmpty(x.WeekStart), () =>
