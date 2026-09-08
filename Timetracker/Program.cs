@@ -650,28 +650,11 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
         return 1;
     }
 
-    DateTime from, to;
-
-    if (opts.Yesterday)
-        from = to = DateTime.Today.AddDays(-1);
-    else if (opts.Week)
-        (from, to) = ValidationUtils.ResolveCurrentWeek();
-    else if (opts.LastWeek)
-        (from, to) = ValidationUtils.ResolveLastWeek();
-    else if (opts.Month)
-        (from, to) = ValidationUtils.ResolveCurrentMonth();
-    else if (opts.LastMonth)
-        (from, to) = ValidationUtils.ResolveLastMonth();
-    else if (!string.IsNullOrEmpty(opts.Period))
+    if (!PeriodResolver.TryResolve(opts, out var from, out var to, out var periodError))
     {
-        if (!ValidationUtils.TryResolveMonth(opts.Period, out from, out to))
-        {
-            ConsoleHelper.WriteError("Invalid period format. Use YYYY/MM (e.g., 2026/06).");
-            return 1;
-        }
+        ConsoleHelper.WriteError(periodError);
+        return 1;
     }
-    else
-        from = to = DateTime.Today;
 
     var config = ConfigService.LoadConfig();
     var activities = ActivityService.GetActivities();
