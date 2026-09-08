@@ -13,8 +13,9 @@ public class ConfigValidator : AbstractValidator<ConfigOptions>
             .Must(x => x.Show || x.Reset
                        || !string.IsNullOrEmpty(x.TimetrackerUrl)
                        || !string.IsNullOrEmpty(x.TimetrackerBearerToken)
-                       || !string.IsNullOrEmpty(x.Border))
-            .WithMessage("Provide at least one option: --url, --token, --border, --show, or --reset.");
+                       || !string.IsNullOrEmpty(x.Border)
+                       || !string.IsNullOrEmpty(x.WeekStart))
+            .WithMessage("Provide at least one option: --url, --token, --border, --week-start, --show, or --reset.");
 
         // Credentials are only mandatory on first-time setup. Once configured, any
         // option can be updated on its own without re-entering the others.
@@ -37,8 +38,15 @@ public class ConfigValidator : AbstractValidator<ConfigOptions>
         When(x => !string.IsNullOrEmpty(x.Border), () =>
         {
             RuleFor(x => x.Border)
-                .Must(b => b.ToLowerInvariant() is "minimal" or "square" or "markdown")
-                .WithMessage("--border must be one of: minimal, square, markdown.");
+                .Must(b => b.ToLowerInvariant() is "minimal" or "square" or "markdown" or "ascii")
+                .WithMessage("--border must be one of: minimal, square, markdown, ascii.");
+        });
+
+        When(x => !string.IsNullOrEmpty(x.WeekStart), () =>
+        {
+            RuleFor(x => x.WeekStart)
+                .Must(w => w.ToLowerInvariant() is "sunday" or "monday")
+                .WithMessage("--week-start must be one of: sunday, monday.");
         });
     }
 }

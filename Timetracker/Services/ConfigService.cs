@@ -17,6 +17,7 @@ public record Config
     public string AccountName { get; set; }
     public bool TokenEncrypted { get; set; }
     public string TableBorder { get; set; }
+    public string WeekStart { get; set; }
 }
 
 public static class ConfigService
@@ -83,7 +84,8 @@ public static class ConfigService
             DisplayName = displayName ?? existing.DisplayName,
             Email = email ?? existing.Email,
             AccountName = accountName ?? existing.AccountName,
-            TableBorder = opts.Border?.ToLowerInvariant() ?? existing.TableBorder
+            TableBorder = opts.Border?.ToLowerInvariant() ?? existing.TableBorder,
+            WeekStart = opts.WeekStart?.ToLowerInvariant() ?? existing.WeekStart
         };
 
         WriteConfig(config);
@@ -104,6 +106,26 @@ public static class ConfigService
 
         if (!OperatingSystem.IsWindows())
             File.SetUnixFileMode(configPath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+    }
+
+    /// <summary>Returns the configured week start day; defaults to <see cref="DayOfWeek.Sunday"/> when unset.</summary>
+    public static DayOfWeek GetWeekStart()
+    {
+        var configPath = GetConfigPath();
+        if (!File.Exists(configPath))
+            return DayOfWeek.Sunday;
+
+        try
+        {
+            var value = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath))?.WeekStart;
+            return string.Equals(value, "monday", StringComparison.OrdinalIgnoreCase)
+                ? DayOfWeek.Monday
+                : DayOfWeek.Sunday;
+        }
+        catch
+        {
+            return DayOfWeek.Sunday;
+        }
     }
 
     /// <summary>Reads the configured table border without decrypting the token; null if unset.</summary>

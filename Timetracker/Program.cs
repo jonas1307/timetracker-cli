@@ -91,7 +91,8 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         Console.WriteLine($"URL:    {config.TimetrackerUrl}");
         Console.WriteLine($"Token:  {maskedToken}");
         Console.WriteLine($"UserId: {config.TimetrackerUserId}");
-        Console.WriteLine($"Border: {config.TableBorder ?? "minimal"}");
+        Console.WriteLine($"Border:     {config.TableBorder ?? "minimal"}");
+        Console.WriteLine($"Week start: {config.WeekStart ?? "sunday"}");
 
         return 0;
     }
@@ -129,9 +130,13 @@ async Task<int> ConfigAction(ConfigOptions opts, CancellationToken cancellationT
         // Partial update (e.g. only --border): merge into the existing config, no network call.
         ConfigService.SaveConfig(opts);
 
-        ConsoleHelper.WriteSuccess(!string.IsNullOrEmpty(opts.Border)
-            ? $"Table border set to '{opts.Border.ToLowerInvariant()}'."
-            : "Configuration updated.");
+        var message = (!string.IsNullOrEmpty(opts.Border), !string.IsNullOrEmpty(opts.WeekStart)) switch
+        {
+            (true, _)  => $"Table border set to '{opts.Border.ToLowerInvariant()}'.",
+            (_, true)  => $"Week start set to '{opts.WeekStart.ToLowerInvariant()}'.",
+            _          => "Configuration updated."
+        };
+        ConsoleHelper.WriteSuccess(message);
 
         return 0;
     }
@@ -407,6 +412,16 @@ static async Task<int> SummaryAction(SummaryOptions opts, CancellationToken canc
         return 1;
     }
 
+    var noPeriodSpecified = !opts.Today && !opts.Yesterday
+        && !opts.Week && !opts.CurrentWeek && !opts.LastWeek
+        && !opts.Month && !opts.CurrentMonth && !opts.LastMonth
+        && string.IsNullOrEmpty(opts.Period)
+        && string.IsNullOrEmpty(opts.From)
+        && string.IsNullOrEmpty(opts.To);
+
+    if (noPeriodSpecified)
+        opts.Month = true;
+
     if (!PeriodResolver.TryResolve(opts, out var from, out var to, out var periodError))
     {
         ConsoleHelper.WriteError(periodError);
@@ -640,28 +655,11 @@ static async Task<int> InteractiveAction(InteractiveOptions opts, CancellationTo
         return 1;
     }
 
-    DateTime from, to;
-
-    if (opts.Yesterday)
-        from = to = DateTime.Today.AddDays(-1);
-    else if (opts.Week)
-        (from, to) = ValidationUtils.ResolveCurrentWeek();
-    else if (opts.LastWeek)
-        (from, to) = ValidationUtils.ResolveLastWeek();
-    else if (opts.Month)
-        (from, to) = ValidationUtils.ResolveCurrentMonth();
-    else if (opts.LastMonth)
-        (from, to) = ValidationUtils.ResolveLastMonth();
-    else if (!string.IsNullOrEmpty(opts.Period))
+    if (!PeriodResolver.TryResolve(opts, out var from, out var to, out var periodError))
     {
-        if (!ValidationUtils.TryResolveMonth(opts.Period, out from, out to))
-        {
-            ConsoleHelper.WriteError("Invalid period format. Use YYYY/MM (e.g., 2026/06).");
-            return 1;
-        }
+        ConsoleHelper.WriteError(periodError);
+        return 1;
     }
-    else
-        from = to = DateTime.Today;
 
     var config = ConfigService.LoadConfig();
     var activities = ActivityService.GetActivities();

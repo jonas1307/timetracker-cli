@@ -22,8 +22,9 @@ public static class TableHelper
 
     private static TableBorder ResolveBorder() => ConfigService.GetTableBorder()?.ToLowerInvariant() switch
     {
-        "square" => TableBorder.Square,
+        "square"   => TableBorder.Square,
         "markdown" => TableBorder.Markdown,
-        _ => TableBorder.Minimal
+        "ascii"    => TableBorder.Ascii,
+        _          => TableBorder.Minimal
     };
 }

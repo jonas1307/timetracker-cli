@@ -11,7 +11,9 @@ internal sealed class FakePeriodOptions : IPeriodOptions
     public bool Today { get; init; }
     public bool Yesterday { get; init; }
     public bool Week { get; init; }
+    public bool CurrentWeek { get; init; }
     public bool LastWeek { get; init; }
     public bool Month { get; init; }
+    public bool CurrentMonth { get; init; }
     public bool LastMonth { get; init; }
 }
